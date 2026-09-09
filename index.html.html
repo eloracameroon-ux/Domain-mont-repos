@@ -1,0 +1,2523 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MRMS · Domaine Mont-Repos</title>
+<meta name="theme-color" content="#0F3D3E">
+<link rel="icon" href="data:,">
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --ocean-deep:#0D3534;
+  --ocean-deeper:#145048;
+  --sand:#f8fafc;
+  --sand-dim:#EFE6D2;
+  --paper:#ffffff;
+  --ink:#1a1a2e;
+  --ink-soft:#6b7280;
+  --coral:#C7913B;
+  --gold-light:#E8BA68;
+  --sage:#059669;
+  --sage-pale:#d1fae5;
+  --danger:#dc2626;
+  --danger-pale:#fee2e2;
+  --warn:#92400e;
+  --warn-pale:#fef3c7;
+  --purple:#7c3aed;
+  --purple-pale:#ede9fe;
+  --line:#e5e7eb;
+  --radius:8px;
+  --font-display:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-ui:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;font-family:var(--font-ui);background:var(--sand);color:var(--ink);-webkit-tap-highlight-color:transparent;}
+h1,h2,h3{font-family:var(--font-display);font-weight:800;margin:0;letter-spacing:0;}
+button{font-family:var(--font-ui);cursor:pointer;}
+input,select,textarea{font-family:var(--font-ui);}
+a{color:inherit;}
+
+#login-screen{
+  position:fixed;inset:0;background:linear-gradient(135deg,var(--ocean-deep),var(--ocean-deeper));
+  z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;color:#fff;text-align:center;
+}
+.login-brand{margin-bottom:10px;text-align:center;}
+.login-brand img{width:88px;height:88px;object-fit:contain;border-radius:10px;margin:0 auto;}
+.login-brand .eyebrow{font-size:13px;letter-spacing:3px;text-transform:uppercase;opacity:.6;margin-top:10px;}
+.login-brand h1{font-size:20px;font-weight:800;margin-top:6px;color:#fff;}
+#last-session-banner{background:rgba(255,255,255,.12)!important;color:#fff!important;}
+.field{margin-bottom:14px;}
+.field input{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:var(--radius);font-size:14px;background:#fff;-webkit-appearance:none;}
+.field select,.field textarea{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:var(--radius);font-size:14px;background:#fff;-webkit-appearance:none;}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.field input:focus{outline:none;border-color:var(--ocean-deep);}
+.btn-primary{
+  width:100%;padding:13px;background:var(--coral);color:#fff;border:2px solid var(--coral);
+  border-radius:var(--radius);font-size:15px;font-weight:700;margin-top:10px;
+}
+.btn-primary:active{opacity:.85;}
+#login-error{color:#fca5a5;font-size:13px;margin-top:20px;min-height:18px;text-align:center;max-width:280px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:transparent;}
+.pin-dot.filled{background:var(--gold-light);border-color:var(--gold-light);}
+#pin-pad{grid-template-columns:repeat(3,72px)!important;gap:14px!important;justify-content:center;}
+.pin-key{width:72px;height:72px;border-radius:50%;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);font-size:22px;font-weight:700;color:#fff;}
+.pin-key:active{background:rgba(255,255,255,.18);}
+#pin-clear, #pin-back{font-size:13px;font-weight:600;opacity:.8;color:#fff;}
+.session-switch{width:100%;padding:11px;background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:var(--radius);font-size:13.5px;margin-top:14px;}
+#first-setup-wrap{width:100%;max-width:320px;}
+#first-setup-wrap .field input{background:#fff;}
+#first-setup-wrap p{color:rgba(255,255,255,.75)!important;}
+
+
+#app-shell{display:none;min-height:100vh;background:var(--sand);}
+#app-header{
+  background:linear-gradient(135deg,var(--ocean-deep),var(--ocean-deeper));
+  padding:16px 18px 12px;color:#fff;position:sticky;top:0;z-index:100;
+}
+#app-header .eyebrow{font-size:10px;opacity:.6;letter-spacing:2px;text-transform:uppercase;}
+#app-header h2{font-size:18px;font-weight:800;color:#fff;}
+#emp-line{display:flex;align-items:center;gap:8px;font-size:11px;opacity:.85;margin-top:6px;}
+#emp-line button{background:none;border:none;color:var(--gold-light);font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;}
+#tabs{
+  background:#fff;border-bottom:1px solid var(--line);display:flex;overflow-x:auto;
+  position:sticky;top:68px;z-index:99;
+}
+#tabs::-webkit-scrollbar{display:none;}
+.nav-item{
+  flex:0 0 auto;padding:10px 11px;border:none;background:none;cursor:pointer;
+  border-bottom:3px solid transparent;color:#9ca3af;font-size:10px;font-weight:500;
+  text-align:center;white-space:nowrap;
+}
+.nav-item .ic{display:block;font-size:16px;margin-bottom:2px;}
+.nav-item.active{border-bottom-color:var(--ocean-deep);color:var(--ocean-deep);font-weight:700;}
+.content{padding:14px;padding-bottom:70px;max-width:520px;margin:0 auto;}
+.content{padding:14px;padding-bottom:70px;max-width:520px;margin:0 auto;}
+.section{display:none;}
+.section.active{display:block;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.stat-card{border-radius:12px;padding:10px 6px;text-align:center;background:var(--sand-dim);}
+.stat-card .label{font-size:10px;font-weight:600;color:var(--ink-soft);}
+.stat-card .value{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--ink);margin-top:2px;}
+.stat-card.stat-green{background:#d1fae5;} .stat-card.stat-green .value{color:#065f46;} .stat-card.stat-green .label{color:#065f46;}
+.stat-card.stat-red{background:#fee2e2;} .stat-card.stat-red .value{color:#991b1b;} .stat-card.stat-red .label{color:#991b1b;}
+.stat-card.stat-amber{background:#fef3c7;} .stat-card.stat-amber .value{color:#92400e;} .stat-card.stat-amber .label{color:#92400e;}
+.stat-card.stat-purple{background:#ede9fe;} .stat-card.stat-purple .value{color:#5b21b6;} .stat-card.stat-purple .label{color:#5b21b6;}
+/* rétro-compatibilité anciens noms de classes */
+.stat-card.accent-coral{background:#fef3c7;} .stat-card.accent-coral .value,.stat-card.accent-coral .label{color:#92400e;}
+.stat-card.accent-sage{background:#d1fae5;} .stat-card.accent-sage .value,.stat-card.accent-sage .label{color:#065f46;}
+.stat-card.accent-warn{background:#fef3c7;} .stat-card.accent-warn .value,.stat-card.accent-warn .label{color:#92400e;}
+
+.panel{background:#fff;border:1.5px solid var(--line);border-radius:12px;margin-bottom:14px;}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:8px;}
+.panel-head h3{font-size:15px;font-weight:800;color:var(--ink);}
+.panel-body{padding:14px 16px;}
+
+.btn{padding:9px 16px;border-radius:var(--radius);font-size:13px;font-weight:700;border:2px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;}
+.btn-dark{background:var(--ocean-deep);color:#fff;border-color:var(--ocean-deep);}
+.btn-coral{background:var(--coral);color:#fff;border-color:var(--coral);}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-soft);}
+.btn-sm{padding:6px 11px;font-size:12px;}
+.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger);}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-size:11px;color:var(--ink-soft);font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:8px 10px;border-bottom:1px solid var(--line);}
+td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.tag-available{background:#d1fae5;color:#065f46;}
+.tag-occupied{background:#fee2e2;color:#991b1b;}
+.tag-reserved{background:#fef3c7;color:#92400e;}
+.tag-cleaning{background:#dbeafe;color:#1e40af;}
+.tag-maintenance{background:#fef3c7;color:#92400e;}
+.tag-blocked{background:#f3f4f6;color:#374151;}
+.tag-confirmed{background:#d1fae5;color:#065f46;}
+.tag-pending{background:#fef3c7;color:#92400e;}
+.tag-cancelled{background:#f3f4f6;color:#374151;}
+.tag-checked_in{background:#dbeafe;color:#1e40af;}
+.tag-checked_out{background:#f3f4f6;color:#374151;}
+.tag-no_show{background:#fee2e2;color:#991b1b;}
+
+.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.room-card{border:2px solid var(--line);border-radius:12px;padding:11px;background:#fff;cursor:pointer;}
+.room-card .rname{font-weight:800;font-size:14px;}
+.room-card .rtype{font-size:11px;color:var(--ink-soft);margin:2px 0 8px;}
+
+.empty-state{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+
+.ing-row{display:grid;grid-template-columns:1fr 90px 30px;gap:8px;margin-bottom:8px;align-items:center;}
+.ing-row select, .ing-row input{padding:8px 9px;border:1px solid var(--line);border-radius:var(--radius);font-size:13.5px;}
+.ing-row button{background:none;border:none;color:var(--danger);font-size:16px;}
+.recipe-card{border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff;}
+.recipe-card .rhead{display:flex;justify-content:space-between;align-items:center;}
+.recipe-card .rhead h4{font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--ink);margin:0;}
+.recipe-metrics{display:flex;gap:16px;margin-top:8px;font-size:12.5px;color:var(--ink-soft);flex-wrap:wrap;}
+.recipe-metrics b{color:var(--ink);}
+.foodcost-good{color:var(--sage);}
+.foodcost-warn{color:var(--warn);}
+.foodcost-bad{color:var(--danger);}
+
+.order-row{display:grid;grid-template-columns:1fr 70px 30px;gap:8px;margin-bottom:8px;align-items:center;}
+.order-row select, .order-row input{padding:8px 9px;border:1px solid var(--line);border-radius:var(--radius);font-size:13.5px;}
+.order-row button{background:none;border:none;color:var(--danger);font-size:16px;}
+.order-card{border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:#fff;}
+.order-card .ohead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.order-card .ohead h4{font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--ink);margin:0;}
+.order-item-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+.order-item-line:last-child{border-bottom:none;}
+.po-row{display:grid;grid-template-columns:1fr 70px 90px 30px;gap:8px;margin-bottom:8px;align-items:center;}
+.po-row select, .po-row input{padding:8px 9px;border:1px solid var(--line);border-radius:var(--radius);font-size:13.5px;}
+.po-row button{background:none;border:none;color:var(--danger);font-size:16px;}
+.po-card{border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:#fff;}
+.po-card .phead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.po-card .phead h4{font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--ink);margin:0;}
+
+.kds-card{border:2px solid var(--line);border-radius:12px;padding:12px;background:#fff;}
+.kds-card .kname{font-weight:800;font-size:14px;}
+.kds-card .ktable{font-size:11.5px;color:var(--ink-soft);margin:2px 0 8px;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,15,30,.75);z-index:200;align-items:flex-end;justify-content:center;padding:0;}
+.modal-overlay.active{display:flex;}
+.modal{background:#fff;border-radius:20px 20px 0 0;max-width:520px;width:100%;max-height:92vh;overflow-y:auto;padding:20px 20px 28px;}
+.modal h3{font-size:16px;font-weight:800;color:var(--ink);margin-bottom:16px;}
+.modal .field{margin-bottom:12px;}
+.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.toast-wrap{position:fixed;bottom:20px;right:20px;left:20px;z-index:600;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.toast{background:var(--ocean-deep);color:#fff;padding:12px 16px;border-radius:var(--radius);font-size:13.5px;box-shadow:0 10px 25px rgba(0,0,0,0.2);max-width:400px;}
+.toast.danger{background:var(--danger);}
+
+.bottom-nav{display:none;}
+#mobile-more-sheet{display:none;}
+@media (max-width: 600px){
+  .grid-2{grid-template-columns:1fr;}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <img src="data:image/jpeg;base64,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AQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICAwICAwUDAwMFBgUFBQUGCAYGBgYGCAoICAgICAgKCgoKCgoKCgwMDAwMDA4ODg4ODw8PDw8PDw8PD//bAEMBAgICBAQEBwQEBxALCQsQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEP/dAAQAIP/aAAwDAQACEQMRAD8A/KOiiivYPy8KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//Q/KOiiivYPy8KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//R/KOiiivYPy8KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//S/KOiiivYPy8KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//T/KOiiivYPy8KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//U/KOiiivYPy8KKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiv0g/ZA8TfB7xr/AGf8JfFXw/0uTXLa1uHTU57S2uHu6+/P+FJ/Bn/on+g/+Cmzr8p4g8UIZfiHh8Rh5XXmtUfqGSeG/wDaGHWIw+Ijb0ejP546K/Rfx3+0T8GfBPjPW/B5+BmgXx0W9uLHf/ocPneVL/14Vyf/AA1h8GP+iAaD/wCSf/yBX0VHiTH1oKcMHK0lf4oHg1eG8vjNwnjY3j5TPhSivuz/AIax+DH/AEQDQf8AyT/+QKP+Gsfgx/0QDQf/ACT/APkCtv7ezL/oBl/4HAx/sLL/APoNj90z4Tor70T9pf8AZ+vv9D8V/AzTtO/68vs2/wD9JrevRdK+AP7Mf7Rei3GpfBnVLrwxq8f37L7+z/rrFLXFiuNZYf38wwsoQ/m0kvwOmHB8MR7mBxMZvtrGX4n5jUV7H8XvgR8R/gxe+V4q0/zLGR/3OoQfPbPXjlfZYDH4fFUlWw81JPqj5XH4Crh6rpVYOLXRhRRRXScgUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQB/9X8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA+gf2UL6ay/aC8FzQ/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aZr/AMaPEepaPeQajYyvb+XPA+9H/wBGho+I2s2Vz8MfhXZ6bqEEl9pOnX0cyI/z27y6jNLXidFH1D4P7v8AlYj6/P8AeTt8X+dz7PtfiV4L8dfB3x5r3iS8/s74gyaPaaXe/wDUXRLyGWK4/wCvmvHf2b9V0zQPjr4P1LWLyDTrGK6+ead/KRP3VeJUVH9m/wASj/Mbf2xzTp1rax/E92/4U14u/wChz8Lf+FRp3/x6vEr61msr2402aRJZbZ3Tej70fyv+eUsVVqK6aNGdM5q1aFTuvmFFFFdJyBRRRQAUUUUAFTWN3NZXsd5Ds82P++kTp/36lqGigDq/+E41r/n307/wUad/8Zo/4TjWv+ffTv8AwUad/wDGa5Sio5DXn/vM6v8A4TjWv+ffTv8AwUad/wDGaP8AhONa/wCffTv/AAUad/8AGa5SijkDn/vMs319NqV7JeTRwRy/7FvFbp/36iqtRRVmQUUUUAFFFFABRRRQAUUUUAFFFFAH/9b8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9f8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9D8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9H8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9L8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9P8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9T8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9X8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9b8o6KKK9g/LwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9k=" alt="Domaine Mont-Repos">
+      <div class="eyebrow" style="margin-top:10px;color:var(--sage);">MRMS</div>
+    </div>
+    <div id="last-session-banner" style="display:none;text-align:center;margin-bottom:16px;padding:10px;background:var(--sage-pale);border-radius:var(--radius);font-size:13px;color:var(--ink);"></div>
+    <div id="first-setup-wrap" style="display:none;">
+      <p style="font-size:13.5px;color:var(--ink-soft);text-align:center;margin-bottom:16px;">Premier lancement : créez le compte Propriétaire pour commencer.</p>
+      <div class="field"><label>Votre nom</label><input id="setup-name" placeholder="Stéphane Eteme"></div>
+      <div class="field"><label>Choisissez un code PIN (4 chiffres)</label><input id="setup-pin" maxlength="4" inputmode="numeric" placeholder="1234"></div>
+      <button class="btn-primary" id="setup-btn">Créer mon accès Propriétaire</button>
+    </div>
+    <div id="pin-login-wrap">
+    <div class="field" id="pin-dots-wrap" style="text-align:center;margin-bottom:18px;">
+      <div id="pin-dots" style="display:flex;gap:12px;justify-content:center;">
+        <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+      </div>
+    </div>
+    <div id="pin-pad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+      <button class="pin-key" data-k="1">1</button><button class="pin-key" data-k="2">2</button><button class="pin-key" data-k="3">3</button>
+      <button class="pin-key" data-k="4">4</button><button class="pin-key" data-k="5">5</button><button class="pin-key" data-k="6">6</button>
+      <button class="pin-key" data-k="7">7</button><button class="pin-key" data-k="8">8</button><button class="pin-key" data-k="9">9</button>
+      <button class="pin-key" id="pin-clear">Effacer</button><button class="pin-key" data-k="0">0</button><button class="pin-key" id="pin-back">⌫</button>
+    </div>
+    <div id="login-error"></div>
+    </div>
+  </div>
+</div>
+
+<div id="app-shell">
+  <div id="app-header">
+    <div class="eyebrow">Domaine Mont-Repos — Kribi</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+      <h2 id="page-title">Tableau de bord</h2>
+      <div style="text-align:right;">
+        <div style="font-size:10px;opacity:.6;" id="header-date"></div>
+        <div style="font-size:13px;margin-top:2px;">Occ: <span style="color:var(--gold-light);font-weight:700;" id="header-occ">0</span>/<span id="header-occ-total">0</span></div>
+      </div>
+    </div>
+    <div id="emp-line">
+      <span id="user-name">—</span> · <span id="user-role">—</span>
+      <button id="logout-btn">Changer</button>
+    </div>
+  </div>
+  <div id="tabs"></div>
+  <div class="content">
+
+        <section class="section active" id="section-dashboard">
+          <div class="stat-grid" id="dash-stats"></div>
+          <div class="panel">
+            <div class="panel-head"><h3>Arrivées & départs du jour</h3></div>
+            <div class="panel-body">
+              <div id="dash-today-list" class="empty-state">Chargement…</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-rooms">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Unités d'hébergement</h3>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-sm" id="seed-rooms-btn">↓ Importer les 5 hébergements du Domaine</button>
+                <button class="btn btn-dark btn-sm" id="add-room-btn">+ Nouvelle unité</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="room-grid" id="rooms-grid"><div class="empty-state">Chargement…</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-reservations">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Réservations</h3>
+              <button class="btn btn-dark btn-sm" id="add-resa-btn">+ Nouvelle réservation</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table id="resa-table">
+                <thead><tr><th>Client</th><th>Unité</th><th>Arrivée</th><th>Départ</th><th>Statut</th><th>Paiement</th><th></th></tr></thead>
+                <tbody id="resa-tbody"><tr><td colspan="7" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-guests">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Clients</h3>
+              <button class="btn btn-dark btn-sm" id="add-guest-btn">+ Nouveau client</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Nom</th><th>Téléphone</th><th>Séjours</th><th>CA généré</th><th>Tags</th><th></th></tr></thead>
+                <tbody id="guests-tbody"><tr><td colspan="6" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-restaurant">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Tables</h3>
+              <button class="btn btn-dark btn-sm" id="add-table-btn">+ Nouvelle table</button>
+            </div>
+            <div class="panel-body">
+              <div class="room-grid" id="tables-grid"><div class="empty-state">Chargement…</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Commandes en cours</h3>
+            </div>
+            <div class="panel-body">
+              <div id="orders-list" class="empty-state">Chargement…</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Carte / Menu</h3>
+              <button class="btn btn-dark btn-sm" id="add-menuitem-btn">+ Article</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Article</th><th>Catégorie</th><th>Prix</th><th>Poste</th><th></th></tr></thead>
+                <tbody id="menu-tbody"><tr><td colspan="5" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-purchasing">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Fournisseurs</h3>
+              <button class="btn btn-dark btn-sm" id="add-supplier-btn">+ Nouveau fournisseur</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Nom</th><th>Téléphone</th><th>Catégorie</th><th>Produits</th><th></th></tr></thead>
+                <tbody id="suppliers-tbody"><tr><td colspan="5" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Bons de commande</h3>
+              <button class="btn btn-dark btn-sm" id="add-po-btn">+ Nouveau bon de commande</button>
+            </div>
+            <div class="panel-body">
+              <div id="po-list" class="empty-state">Chargement…</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-kitchen">
+          <div class="panel">
+            <div class="panel-head"><h3>Écran cuisine — commandes en attente</h3></div>
+            <div class="panel-body">
+              <div id="kds-cuisine-list" class="room-grid"><div class="empty-state">Aucune commande en attente.</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Écran bar — commandes en attente</h3></div>
+            <div class="panel-body">
+              <div id="kds-bar-list" class="room-grid"><div class="empty-state">Aucune commande en attente.</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Stock cuisine</h3>
+              <button class="btn btn-dark btn-sm" id="add-stock-btn">+ Nouvel ingrédient</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Ingrédient</th><th>Quantité</th><th>Seuil min.</th><th>Coût unitaire</th><th>Valeur stock</th><th></th></tr></thead>
+                <tbody id="stock-tbody"><tr><td colspan="6" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Fiches techniques des plats</h3>
+              <button class="btn btn-dark btn-sm" id="add-recipe-btn">+ Nouvelle fiche</button>
+            </div>
+            <div class="panel-body">
+              <div id="recipes-list" class="empty-state">Chargement…</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-employees">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Personnel</h3>
+              <button class="btn btn-dark btn-sm" id="add-employee-btn">+ Nouvel employé</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Nom</th><th>Fonction</th><th>Téléphone</th><th>Statut</th><th></th></tr></thead>
+                <tbody id="employees-tbody"><tr><td colspan="5" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-planning">
+          <div class="panel">
+            <div class="panel-head" style="flex-wrap:wrap;gap:10px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <button class="btn btn-sm" id="week-prev-btn">◀</button>
+                <h3 id="week-label" style="min-width:180px;">Semaine</h3>
+                <button class="btn btn-sm" id="week-next-btn">▶</button>
+              </div>
+              <div style="display:flex;gap:14px;font-size:12px;color:var(--ink-soft);">
+                <span><span class="tag tag-confirmed">Travail</span></span>
+                <span><span class="tag tag-blocked">Repos</span></span>
+                <span><span class="tag tag-pending">Congé</span></span>
+                <span><span class="tag tag-occupied">Absence</span></span>
+              </div>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table id="planning-table"><thead></thead><tbody></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-cash">
+          <div class="stat-grid" id="cash-stats"></div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Mouvements de caisse — Réception</h3>
+              <button class="btn btn-dark btn-sm" id="add-cash-btn">+ Mouvement</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Date</th><th>Type</th><th>Montant</th><th>Mode</th><th>Note</th></tr></thead>
+                <tbody id="cash-tbody"><tr><td colspan="5" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-maintenance">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Tickets maintenance</h3>
+              <button class="btn btn-dark btn-sm" id="add-ticket-btn">+ Nouveau ticket</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Unité</th><th>Problème</th><th>Priorité</th><th>Statut</th><th></th></tr></thead>
+                <tbody id="tickets-tbody"><tr><td colspan="5" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-housekeeping">
+          <div class="panel">
+            <div class="panel-head"><h3>Housekeeping du jour</h3></div>
+            <div class="panel-body">
+              <div id="hk-list" class="room-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-admin">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Accès à l'application</h3>
+              <button class="btn btn-dark btn-sm" id="add-access-btn">+ Attribuer un accès</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Nom</th><th>Rôle d'accès</th><th>Code PIN</th><th>Statut</th><th></th></tr></thead>
+                <tbody id="access-tbody"><tr><td colspan="5" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-audit">
+          <div class="panel">
+            <div class="panel-head"><h3>Journal d'audit</h3></div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Détail</th></tr></thead>
+                <tbody id="audit-tbody"><tr><td colspan="4" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+</div>
+
+<div class="modal-overlay" id="modal-room">
+  <div class="modal">
+    <h3>Unité d'hébergement</h3>
+    <input type="hidden" id="room-id">
+    <div class="field"><label>Nom</label><input id="room-name" placeholder="Villa Riva"></div>
+    <div class="grid-2">
+      <div class="field"><label>Type</label>
+        <select id="room-type"><option>Suite</option><option>Villa</option><option>Studio</option><option>Appartement</option></select>
+      </div>
+      <div class="field"><label>Capacité</label><input type="number" id="room-capacity" placeholder="4"></div>
+    </div>
+    <div class="field"><label>Prix / nuit (FCFA)</label><input type="number" id="room-price" placeholder="75000"></div>
+    <div class="field"><label>Note tarifaire / offre spéciale (optionnel)</label><input id="room-note" placeholder="Ex : Pack Saint-Valentin 865 000f (2 nuits tout inclus)"></div>
+    <div class="field"><label>Statut</label>
+      <select id="room-status">
+        <option value="AVAILABLE">Disponible</option>
+        <option value="OCCUPIED">Occupée</option>
+        <option value="RESERVED">Réservée</option>
+        <option value="CLEANING">Nettoyage</option>
+        <option value="MAINTENANCE">Maintenance</option>
+        <option value="BLOCKED">Bloquée</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-room')">Annuler</button>
+      <button class="btn btn-dark" id="save-room-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-resa">
+  <div class="modal">
+    <h3>Réservation</h3>
+    <input type="hidden" id="resa-id">
+    <div class="field"><label>Client</label>
+      <select id="resa-guest"></select>
+    </div>
+    <div class="field"><label>Unité</label>
+      <select id="resa-room"></select>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Arrivée</label><input type="date" id="resa-checkin"></div>
+      <div class="field"><label>Départ</label><input type="date" id="resa-checkout"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Personnes</label><input type="number" id="resa-guests-count" value="2"></div>
+      <div class="field"><label>Tarif/nuit (FCFA)</label><input type="number" id="resa-rate"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Source</label>
+        <select id="resa-source"><option>Direct</option><option>WhatsApp</option><option>Facebook</option><option>Instagram</option><option>Booking.com</option><option>Corporate</option><option>Walk-in</option><option>Agence</option><option>Autre</option></select>
+      </div>
+      <div class="field"><label>Statut</label>
+        <select id="resa-status"><option value="PENDING">En attente</option><option value="CONFIRMED">Confirmée</option><option value="CHECKED_IN">Check-in fait</option><option value="CHECKED_OUT">Check-out fait</option><option value="CANCELLED">Annulée</option><option value="NO_SHOW">No-show</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="resa-notes" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;"></textarea></div>
+    <div id="resa-conflict-warning" style="color:var(--danger);font-size:13px;display:none;margin-top:4px;">⚠ Cette unité est déjà réservée sur une partie de cette période.</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-resa')">Annuler</button>
+      <button class="btn btn-dark" id="save-resa-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-guest">
+  <div class="modal">
+    <h3>Client</h3>
+    <input type="hidden" id="guest-id">
+    <div class="grid-2">
+      <div class="field"><label>Nom</label><input id="guest-lastname"></div>
+      <div class="field"><label>Prénom</label><input id="guest-firstname"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Téléphone</label><input id="guest-phone" placeholder="+237 6XX XXX XXX"></div>
+      <div class="field"><label>Email</label><input id="guest-email"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Entreprise</label><input id="guest-company"></div>
+      <div class="field"><label>Tag</label>
+        <select id="guest-tag"><option value="">—</option><option>VIP</option><option>CORPORATE</option><option>FAMILY</option><option>COUPLE</option><option>REPEAT</option><option>AGENCY</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Notes / préférences</label><textarea id="guest-notes" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-guest')">Annuler</button>
+      <button class="btn btn-dark" id="save-guest-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-employee">
+  <div class="modal">
+    <h3>Employé</h3>
+    <input type="hidden" id="emp-id">
+    <div class="grid-2">
+      <div class="field"><label>Nom complet</label><input id="emp-name"></div>
+      <div class="field"><label>Fonction</label>
+        <select id="emp-role"><option>Réception</option><option>Cuisine</option><option>Bar</option><option>Housekeeping</option><option>Maintenance</option><option>Sécurité</option><option>Administration</option></select>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Téléphone</label><input id="emp-phone"></div>
+      <div class="field"><label>Date d'entrée</label><input type="date" id="emp-start"></div>
+    </div>
+    <div class="field"><label>Statut</label>
+      <select id="emp-status"><option value="ACTIVE">Actif</option><option value="LEAVE">En congé</option><option value="INACTIVE">Inactif</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-employee')">Annuler</button>
+      <button class="btn btn-dark" id="save-employee-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-cash">
+  <div class="modal">
+    <h3>Mouvement de caisse</h3>
+    <div class="grid-2">
+      <div class="field"><label>Type</label>
+        <select id="cash-type"><option value="IN">Entrée</option><option value="OUT">Sortie</option></select>
+      </div>
+      <div class="field"><label>Montant (FCFA)</label><input type="number" id="cash-amount"></div>
+    </div>
+    <div class="field"><label>Mode de paiement</label>
+      <select id="cash-mode"><option>Espèces</option><option>MTN Mobile Money</option><option>Orange Money</option><option>Virement</option><option>Carte</option></select>
+    </div>
+    <div class="field"><label>Note</label><input id="cash-note" placeholder="Ex : acompte résa Villa Riva"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cash')">Annuler</button>
+      <button class="btn btn-dark" id="save-cash-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-ticket">
+  <div class="modal">
+    <h3>Ticket maintenance</h3>
+    <div class="field"><label>Unité concernée</label><select id="ticket-room"></select></div>
+    <div class="field"><label>Description du problème</label><textarea id="ticket-desc" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;"></textarea></div>
+    <div class="field"><label>Priorité</label>
+      <select id="ticket-priority"><option value="LOW">Basse</option><option value="MEDIUM">Moyenne</option><option value="HIGH">Haute</option><option value="CRITICAL">Critique</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ticket')">Annuler</button>
+      <button class="btn btn-dark" id="save-ticket-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-stock">
+  <div class="modal">
+    <h3>Ingrédient (stock cuisine)</h3>
+    <input type="hidden" id="stock-id">
+    <div class="field"><label>Nom</label><input id="stock-name" placeholder="Saumon frais"></div>
+    <div class="grid-2">
+      <div class="field"><label>Unité</label>
+        <select id="stock-unit"><option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="l">l</option><option value="pièce">pièce</option><option value="cuillère">cuillère</option></select>
+      </div>
+      <div class="field"><label>Quantité actuelle</label><input type="number" id="stock-qty" placeholder="0"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Seuil minimum</label><input type="number" id="stock-min" placeholder="0"></div>
+      <div class="field"><label>Coût / unité (FCFA)</label><input type="number" id="stock-cost" placeholder="0"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-stock')">Annuler</button>
+      <button class="btn btn-dark" id="save-stock-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-recipe">
+  <div class="modal" style="max-width:560px;">
+    <h3>Fiche technique</h3>
+    <input type="hidden" id="recipe-id">
+    <div class="field"><label>Nom du plat</label><input id="recipe-name" placeholder="Poisson braisé sauce claire"></div>
+    <div class="field"><label>Prix de vente (FCFA)</label><input type="number" id="recipe-price" placeholder="6500"></div>
+    <div class="field">
+      <label>Ingrédients</label>
+      <div id="recipe-ingredients-rows"></div>
+      <button class="btn btn-sm" type="button" id="add-ingredient-row-btn" style="margin-top:6px;">+ Ajouter un ingrédient</button>
+    </div>
+    <div class="panel" style="margin:14px 0 0;">
+      <div class="panel-body" style="padding:12px 14px;">
+        <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:4px;"><span>Coût matière estimé</span><strong id="recipe-cost-preview">0 FCFA</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:4px;"><span>Marge brute</span><strong id="recipe-margin-preview">0 FCFA</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span>Food cost %</span><strong id="recipe-foodcost-preview">0%</strong></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-recipe')">Annuler</button>
+      <button class="btn btn-dark" id="save-recipe-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-table">
+  <div class="modal">
+    <h3>Table</h3>
+    <input type="hidden" id="table-id">
+    <div class="grid-2">
+      <div class="field"><label>Nom / numéro</label><input id="table-name" placeholder="Table 5"></div>
+      <div class="field"><label>Zone</label><input id="table-zone" placeholder="Terrasse plage"></div>
+    </div>
+    <div class="field"><label>Places</label><input type="number" id="table-seats" placeholder="4"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-table')">Annuler</button>
+      <button class="btn btn-dark" id="save-table-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-menuitem">
+  <div class="modal">
+    <h3>Article de menu</h3>
+    <input type="hidden" id="menuitem-id">
+    <div class="field"><label>Nom</label><input id="menuitem-name" placeholder="Poisson braisé sauce claire"></div>
+    <div class="grid-2">
+      <div class="field"><label>Catégorie</label>
+        <select id="menuitem-category">
+          <option>Entrées</option><option>Cuisine camerounaise</option><option>Cuisine européenne</option>
+          <option>Japonaise</option><option>Vietnamienne</option><option>Chinoise</option><option>Grillades</option>
+          <option>Pizzas</option><option>Desserts</option><option>Boissons</option><option>Cocktails</option><option>Brunch</option>
+        </select>
+      </div>
+      <div class="field"><label>Poste</label>
+        <select id="menuitem-station"><option value="cuisine">Cuisine</option><option value="bar">Bar</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Prix de vente (FCFA)</label><input type="number" id="menuitem-price" placeholder="6500"></div>
+    <div class="field"><label>Lier à une fiche technique (optionnel)</label>
+      <select id="menuitem-recipe"><option value="">— aucune —</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-menuitem')">Annuler</button>
+      <button class="btn btn-dark" id="save-menuitem-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-order">
+  <div class="modal" style="max-width:560px;">
+    <h3 id="order-modal-title">Commande</h3>
+    <input type="hidden" id="order-table-id">
+    <div class="field">
+      <label>Articles</label>
+      <div id="order-items-rows"></div>
+      <button class="btn btn-sm" type="button" id="add-order-row-btn" style="margin-top:6px;">+ Ajouter un article</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:15px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);">
+      <span>Total</span><strong id="order-total-preview">0 FCFA</strong>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-order')">Annuler</button>
+      <button class="btn btn-dark" id="save-order-btn">Envoyer en cuisine/bar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-supplier">
+  <div class="modal">
+    <h3>Fournisseur</h3>
+    <input type="hidden" id="supplier-id">
+    <div class="field"><label>Nom</label><input id="supplier-name" placeholder="Marché Central Kribi — Poissonnerie"></div>
+    <div class="grid-2">
+      <div class="field"><label>Téléphone</label><input id="supplier-phone" placeholder="+237 6XX XXX XXX"></div>
+      <div class="field"><label>Email</label><input id="supplier-email"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Catégorie</label>
+        <select id="supplier-category"><option>Alimentation</option><option>Boissons</option><option>Linge/blanchisserie</option><option>Maintenance</option><option>Équipements</option><option>Autre</option></select>
+      </div>
+      <div class="field"><label>Adresse</label><input id="supplier-address"></div>
+    </div>
+    <div class="field"><label>Produits fournis</label><input id="supplier-products" placeholder="Poisson, crevettes, langoustes"></div>
+    <div class="field"><label>Notes</label><textarea id="supplier-notes" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-supplier')">Annuler</button>
+      <button class="btn btn-dark" id="save-supplier-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-po">
+  <div class="modal" style="max-width:560px;">
+    <h3>Bon de commande</h3>
+    <input type="hidden" id="po-id">
+    <div class="field"><label>Fournisseur</label><select id="po-supplier"></select></div>
+    <div class="field">
+      <label>Articles à commander (stock cuisine)</label>
+      <div id="po-items-rows"></div>
+      <button class="btn btn-sm" type="button" id="add-po-row-btn" style="margin-top:6px;">+ Ajouter un article</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:15px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);">
+      <span>Total estimé</span><strong id="po-total-preview">0 FCFA</strong>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-po')">Annuler</button>
+      <button class="btn btn-dark" id="save-po-btn">Créer le bon de commande</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-access">
+  <div class="modal">
+    <h3 id="access-modal-title">Attribuer un accès</h3>
+    <input type="hidden" id="access-employee-id">
+    <div class="field" id="access-existing-wrap">
+      <label>Employé</label>
+      <select id="access-existing-select">
+        <option value="">— Créer un nouveau profil —</option>
+      </select>
+    </div>
+    <div class="field" id="access-newname-wrap">
+      <label>Nom complet</label>
+      <input id="access-new-name" placeholder="Nom du nouvel employé">
+    </div>
+    <div class="field"><label>Rôle d'accès</label>
+      <select id="access-role"></select>
+    </div>
+    <div class="field">
+      <label>Code PIN (4 chiffres)</label>
+      <div style="display:flex;gap:8px;">
+        <input id="access-pin" maxlength="4" inputmode="numeric" placeholder="1234" style="flex:1;padding:11px 12px;border:1px solid var(--line);border-radius:6px;">
+        <button class="btn btn-sm" type="button" id="generate-pin-btn">Générer</button>
+      </div>
+      <div id="pin-warning" style="color:var(--danger);font-size:12.5px;margin-top:6px;display:none;">⚠ Ce code est déjà utilisé par un autre employé.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-access')">Annuler</button>
+      <button class="btn btn-dark" id="save-access-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-shift">
+  <div class="modal">
+    <h3 id="shift-modal-title">Créneau</h3>
+    <input type="hidden" id="shift-employee-id">
+    <input type="hidden" id="shift-date">
+    <div class="field"><label>Type</label>
+      <select id="shift-type">
+        <option value="SHIFT">Travail</option>
+        <option value="REST">Repos</option>
+        <option value="LEAVE">Congé</option>
+        <option value="ABSENCE">Absence</option>
+      </select>
+    </div>
+    <div class="grid-2" id="shift-time-fields">
+      <div class="field"><label>Début</label><input type="time" id="shift-start" value="08:00"></div>
+      <div class="field"><label>Fin</label><input type="time" id="shift-end" value="17:00"></div>
+    </div>
+    <div class="field"><label>Poste / note (optionnel)</label><input id="shift-note" placeholder="Ex : réception, bar, ménage villas"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="delete-shift-btn" style="display:none;margin-right:auto;">Supprimer</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-shift')">Annuler</button>
+      <button class="btn btn-dark" id="save-shift-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyASl2kx8EWtZ7Vrrb77lvjE1thU29f5aJA",
+  authDomain: "domaine-mont-repos-4bfb1.firebaseapp.com",
+  projectId: "domaine-mont-repos-4bfb1",
+  storageBucket: "domaine-mont-repos-4bfb1.firebasestorage.app",
+  messagingSenderId: "389677363977",
+  appId: "1:389677363977:web:8cf0269df8b39dcbd919d8"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+
+const ROLES = {
+  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","employees","planning","cash","maintenance","housekeeping","admin","audit"] },
+  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","employees","planning","cash","maintenance","housekeeping","admin","audit"] },
+  RECEPTION:          { label:"Réception",      nav:["dashboard","rooms","reservations","guests","cash"] },
+  ACCOUNTANT:         { label:"Comptabilité",   nav:["dashboard","cash","reservations","purchasing"] },
+  HOUSEKEEPING:       { label:"Housekeeping",   nav:["housekeeping","maintenance"] },
+  MAINTENANCE:        { label:"Maintenance",    nav:["maintenance","rooms"] },
+  MARKETING:          { label:"Marketing",      nav:["dashboard","guests"] },
+  KITCHEN:            { label:"Cuisine",        nav:["kitchen","purchasing"] },
+  WAITER:             { label:"Serveur",        nav:["restaurant"] },
+  RESTAURANT_MANAGER: { label:"Resp. Restaurant", nav:["dashboard","restaurant","kitchen","purchasing","planning","cash"] },
+  BAR_MANAGER:        { label:"Resp. Bar",      nav:["restaurant","cash"] },
+  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","employees","planning","cash","maintenance","housekeeping","admin","audit"] }
+};
+
+const NAV_ITEMS = [
+  {key:"dashboard",     label:"Accueil",     icon:"📊"},
+  {key:"rooms",         label:"Hébergt.",    icon:"🛏️"},
+  {key:"reservations",  label:"Réserv.",     icon:"📋"},
+  {key:"guests",        label:"Clients",     icon:"👥"},
+  {key:"restaurant",    label:"Restaurant",  icon:"🍽️"},
+  {key:"kitchen",       label:"Cuisine",     icon:"🍳"},
+  {key:"purchasing",    label:"Achats",      icon:"🛒"},
+  {key:"employees",     label:"Personnel",   icon:"👤"},
+  {key:"planning",      label:"Planning",    icon:"🗓️"},
+  {key:"cash",          label:"Caisse",      icon:"💰"},
+  {key:"maintenance",   label:"Maint.",      icon:"🔧"},
+  {key:"housekeeping",  label:"Ménage",      icon:"🧹"},
+  {key:"admin",         label:"Accès",       icon:"🔑"},
+  {key:"audit",         label:"Journal",     icon:"📜"},
+];
+
+let currentUser = null;
+let currentProfile = null;
+let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[] };
+let unsubscribers = [];
+let planningUnsub = null;
+let currentWeekStart = mondayOf(new Date());
+let recipeIngredientRows = []; // état temporaire du formulaire de fiche technique
+let orderItemRows = []; // état temporaire du formulaire de commande
+let activeOrderTableId = null;
+let poItemRows = []; // état temporaire du formulaire de bon de commande
+
+function mondayOf(d){
+  const dt = new Date(d);
+  const day = dt.getDay(); // 0=dimanche
+  const diff = day===0 ? -6 : 1-day;
+  dt.setDate(dt.getDate()+diff);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+function dateStr(d){ return d.toISOString().slice(0,10); }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+
+function fmtMoney(n){ return (Number(n)||0).toLocaleString('fr-FR') + " FCFA"; }
+function fmtDate(d){
+  if(!d) return "—";
+  const dt = d.toDate ? d.toDate() : new Date(d);
+  return dt.toLocaleDateString('fr-FR');
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function toast(msg, type){
+  const el = document.createElement('div');
+  el.className = 'toast' + (type==='danger' ? ' danger' : '');
+  el.textContent = msg;
+  document.getElementById('toast-wrap').appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+window.closeModal = closeModal;
+
+async function logAudit(action, detail){
+  try{
+    await db.collection('auditLogs').add({
+      userName: currentProfile ? currentProfile.name : 'système',
+      userRole: currentProfile ? currentProfile.role : null,
+      action, detail,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){ console.warn('audit log failed', e); }
+}
+
+// --- AUTHENTIFICATION PAR CODE PIN ------------------------------------------------
+// Chaque employé a un code PIN (4 chiffres) associé à un rôle d'accès, géré depuis
+// l'onglet Administration. Firebase Auth anonyme sert uniquement de "ticket" technique
+// pour satisfaire les Firestore Security Rules (isSignedIn()) — la vraie vérification
+// du rôle se fait ici, côté app, via le code saisi.
+let pinBuffer = '';
+const SESSION_KEY = 'mrms_session_employee_id';
+
+function updatePinDots(){
+  document.querySelectorAll('.pin-dot').forEach((d,i)=> d.classList.toggle('filled', i < pinBuffer.length));
+}
+
+document.querySelectorAll('.pin-key[data-k]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(pinBuffer.length>=4) return;
+    pinBuffer += btn.dataset.k;
+    updatePinDots();
+    document.getElementById('login-error').textContent='';
+    if(pinBuffer.length===4) setTimeout(tryPinLogin, 120);
+  });
+});
+document.getElementById('pin-back').addEventListener('click', ()=>{ pinBuffer = pinBuffer.slice(0,-1); updatePinDots(); });
+document.getElementById('pin-clear').addEventListener('click', ()=>{ pinBuffer=''; updatePinDots(); });
+
+async function tryPinLogin(){
+  const errEl = document.getElementById('login-error');
+  // cache.employees peut ne pas être encore chargé au tout premier lancement de l'app ;
+  // on force une lecture directe pour être sûr d'avoir la liste à jour.
+  let snap;
+  try{ snap = await db.collection('employees').where('pin','==', pinBuffer).limit(1).get(); }
+  catch(e){ errEl.textContent = "Connexion impossible. Vérifiez votre réseau."; pinBuffer=''; updatePinDots(); return; }
+  if(snap.empty){
+    errEl.textContent = "Code incorrect.";
+    pinBuffer=''; updatePinDots();
+    return;
+  }
+  const doc = snap.docs[0];
+  const emp = {id:doc.id, ...doc.data()};
+  if(!emp.appRole || emp.status==='INACTIVE'){
+    errEl.textContent = "Ce code n'a plus accès à l'application.";
+    pinBuffer=''; updatePinDots();
+    return;
+  }
+  localStorage.setItem(SESSION_KEY, emp.id);
+  enterApp(emp);
+}
+
+function enterApp(emp){
+  currentProfile = { id: emp.id, name: emp.name, role: emp.appRole };
+  pinBuffer=''; updatePinDots();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'block';
+  document.getElementById('user-name').textContent = currentProfile.name;
+  document.getElementById('user-role').textContent = (ROLES[currentProfile.role]||{}).label || currentProfile.role;
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  buildNav();
+  attachListeners();
+}
+
+document.getElementById('logout-btn').addEventListener('click', ()=>{
+  localStorage.removeItem(SESSION_KEY);
+  currentProfile = null;
+  unsubscribers.forEach(u=>u()); unsubscribers=[];
+  if(planningUnsub){ planningUnsub(); planningUnsub=null; }
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-shell').style.display = 'none';
+  checkLastSessionBanner();
+});
+
+function checkLastSessionBanner(){
+  const banner = document.getElementById('last-session-banner');
+  const lastId = localStorage.getItem(SESSION_KEY);
+  if(lastId){
+    banner.style.display = 'block';
+    banner.textContent = "Saisissez votre code pour continuer sur cet appareil.";
+  }else{
+    banner.style.display = 'none';
+  }
+}
+
+document.getElementById('setup-pin').addEventListener('input', function(){
+  this.value = this.value.replace(/\D/g,'').slice(0,4);
+});
+
+document.getElementById('setup-btn').addEventListener('click', async ()=>{
+  const name = document.getElementById('setup-name').value.trim();
+  const pin = document.getElementById('setup-pin').value.trim();
+  const errEl = document.getElementById('login-error');
+  if(!name){ errEl.textContent = "Votre nom est requis."; return; }
+  if(pin.length!==4){ errEl.textContent = "Le code doit contenir exactement 4 chiffres."; return; }
+  try{
+    const ref = await db.collection('employees').add({
+      name, role:'Propriétaire', appRole:'OWNER', pin, status:'ACTIVE',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    localStorage.setItem(SESSION_KEY, ref.id);
+    enterApp({id:ref.id, name, appRole:'OWNER'});
+  }catch(e){ errEl.textContent = "Création impossible : "+e.message; }
+});
+
+async function showCorrectLoginMode(){
+  let snap;
+  try{ snap = await db.collection('employees').limit(1).get(); }
+  catch(e){ document.getElementById('login-error').textContent = "Connexion au serveur impossible."; return; }
+  if(snap.empty){
+    document.getElementById('first-setup-wrap').style.display = 'block';
+    document.getElementById('pin-login-wrap').style.display = 'none';
+  }else{
+    document.getElementById('first-setup-wrap').style.display = 'none';
+    document.getElementById('pin-login-wrap').style.display = 'block';
+    checkLastSessionBanner();
+  }
+}
+
+auth.onAuthStateChanged(async user=>{
+  currentUser = user;
+  if(!user){
+    auth.signInAnonymously().catch(err=>{
+      document.getElementById('login-error').textContent = "Connexion au serveur impossible. Vérifiez votre réseau.";
+      console.warn(err);
+    });
+    return;
+  }
+  const lastId = localStorage.getItem(SESSION_KEY);
+  if(lastId && !currentProfile){
+    try{
+      const snap = await db.collection('employees').doc(lastId).get();
+      if(snap.exists && snap.data().appRole && snap.data().status!=='INACTIVE'){
+        enterApp({id:snap.id, ...snap.data()});
+        return;
+      }else{
+        localStorage.removeItem(SESSION_KEY);
+      }
+    }catch(e){ console.warn('reprise de session impossible', e); }
+  }
+  showCorrectLoginMode();
+});
+
+function allowedNav(){
+  const roleDef = ROLES[currentProfile && currentProfile.role] || ROLES.RECEPTION;
+  return NAV_ITEMS.filter(n=>roleDef.nav.includes(n.key));
+}
+
+function buildNav(){
+  const items = allowedNav();
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = items.map(n=>
+    `<button class="nav-item" data-section="${n.key}"><span class="ic">${n.icon}</span>${n.label}</button>`
+  ).join('');
+  tabs.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click', ()=>showSection(b.dataset.section)));
+  showSection(items[0] ? items[0].key : 'dashboard');
+}
+
+function showSection(key){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const target = document.getElementById('section-'+key);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('#tabs .nav-item').forEach(b=>b.classList.toggle('active', b.dataset.section===key));
+  const navDef = NAV_ITEMS.find(n=>n.key===key);
+  document.getElementById('page-title').textContent = navDef ? navDef.label : '';
+  if(key==='rooms') renderRoomOptions();
+}
+
+function attachListeners(){
+  unsubscribers.push(db.collection('rooms').orderBy('name').onSnapshot(snap=>{
+    cache.rooms = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderRooms(); renderDashboard(); renderHousekeeping(); renderRoomOptions();
+  }, err=>console.warn('rooms listener', err)));
+  unsubscribers.push(db.collection('reservations').orderBy('checkIn','desc').onSnapshot(snap=>{
+    cache.reservations = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderReservations(); renderDashboard();
+  }, err=>console.warn('reservations listener', err)));
+  unsubscribers.push(db.collection('guests').orderBy('lastName').onSnapshot(snap=>{
+    cache.guests = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderGuests(); renderGuestOptions();
+  }, err=>console.warn('guests listener', err)));
+  unsubscribers.push(db.collection('employees').orderBy('name').onSnapshot(snap=>{
+    cache.employees = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderEmployees(); renderAccessList();
+  }, err=>console.warn('employees listener', err)));
+  unsubscribers.push(db.collection('cashTransactions').orderBy('createdAt','desc').limit(50).onSnapshot(snap=>{
+    cache.cashMoves = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderCash();
+  }, err=>console.warn('cash listener', err)));
+  unsubscribers.push(db.collection('maintenanceTickets').orderBy('createdAt','desc').onSnapshot(snap=>{
+    cache.tickets = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderTickets();
+  }, err=>console.warn('tickets listener', err)));
+  unsubscribers.push(db.collection('auditLogs').orderBy('createdAt','desc').limit(80).onSnapshot(snap=>{
+    cache.audit = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAudit();
+  }, err=>console.warn('audit listener', err)));
+  unsubscribers.push(db.collection('kitchenStock').orderBy('name').onSnapshot(snap=>{
+    cache.kitchenStock = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderKitchenStock(); renderRecipes(); renderDashboard();
+  }, err=>console.warn('kitchenStock listener', err)));
+  unsubscribers.push(db.collection('recipes').orderBy('dishName').onSnapshot(snap=>{
+    cache.recipes = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderRecipes();
+  }, err=>console.warn('recipes listener', err)));
+  unsubscribers.push(db.collection('tables').orderBy('name').onSnapshot(snap=>{
+    cache.tables = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderTables();
+  }, err=>console.warn('tables listener', err)));
+  unsubscribers.push(db.collection('menuItems').orderBy('name').onSnapshot(snap=>{
+    cache.menuItems = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderMenu();
+  }, err=>console.warn('menuItems listener', err)));
+  unsubscribers.push(db.collection('orders').where('status','==','OPEN').onSnapshot(snap=>{
+    cache.orders = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderOrders(); renderKds(); renderTables();
+  }, err=>console.warn('orders listener', err)));
+  unsubscribers.push(db.collection('suppliers').orderBy('name').onSnapshot(snap=>{
+    cache.suppliers = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderSuppliers();
+  }, err=>console.warn('suppliers listener', err)));
+  unsubscribers.push(db.collection('purchaseOrders').orderBy('createdAt','desc').onSnapshot(snap=>{
+    cache.purchaseOrders = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderPurchaseOrders();
+  }, err=>console.warn('purchaseOrders listener', err)));
+  subscribePlanningWeek();
+}
+
+function subscribePlanningWeek(){
+  if(planningUnsub) planningUnsub();
+  const start = dateStr(currentWeekStart);
+  const end = dateStr(addDays(currentWeekStart,6));
+  planningUnsub = db.collection('shifts')
+    .where('date','>=',start).where('date','<=',end)
+    .onSnapshot(snap=>{
+      cache.shifts = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      renderPlanningGrid();
+    }, err=>console.warn('shifts listener', err));
+}
+
+function renderDashboard(){
+  const rooms = cache.rooms;
+  const total = rooms.length;
+  const occupied = rooms.filter(r=>r.status==='OCCUPIED').length;
+  const available = rooms.filter(r=>r.status==='AVAILABLE').length;
+  const cleaning = rooms.filter(r=>r.status==='CLEANING').length;
+  const maint = rooms.filter(r=>r.status==='MAINTENANCE').length;
+  const occRate = total ? Math.round(occupied/total*100) : 0;
+  document.getElementById('header-occ').textContent = occupied;
+  document.getElementById('header-occ-total').textContent = total;
+
+  const t = todayStr();
+  const arrivals = cache.reservations.filter(r=>r.checkIn===t && r.status!=='CANCELLED');
+  const departures = cache.reservations.filter(r=>r.checkOut===t && r.status!=='CANCELLED');
+  const lowStock = (cache.kitchenStock||[]).filter(i=>Number(i.quantity)<=Number(i.minStock));
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="label">Taux d'occupation</div><div class="value">${occRate}%</div></div>
+    <div class="stat-card accent-sage"><div class="label">Unités disponibles</div><div class="value">${available}/${total}</div></div>
+    <div class="stat-card accent-warn"><div class="label">Arrivées aujourd'hui</div><div class="value">${arrivals.length}</div></div>
+    <div class="stat-card accent-coral"><div class="label">Départs aujourd'hui</div><div class="value">${departures.length}</div></div>
+    <div class="stat-card"><div class="label">En nettoyage</div><div class="value">${cleaning}</div></div>
+    <div class="stat-card"><div class="label">En maintenance</div><div class="value">${maint}</div></div>
+    <div class="stat-card accent-coral"><div class="label">Stock cuisine sous seuil</div><div class="value">${lowStock.length}</div></div>
+  `;
+
+  const list = [
+    ...arrivals.map(r=>({...r, kind:'Arrivée'})),
+    ...departures.map(r=>({...r, kind:'Départ'}))
+  ];
+  const listEl = document.getElementById('dash-today-list');
+  if(!list.length){ listEl.innerHTML = '<div class="empty-state">Aucune arrivée ni départ aujourd\'hui.</div>'; return; }
+  listEl.innerHTML = `<table><thead><tr><th>Type</th><th>Client</th><th>Unité</th><th>Statut</th></tr></thead><tbody>` +
+    list.map(r=>`<tr><td>${r.kind}</td><td>${guestName(r.guestId)}</td><td>${roomName(r.roomId)}</td><td><span class="tag tag-${(r.status||'').toLowerCase()}">${statusLabel(r.status)}</span></td></tr>`).join('') +
+    `</tbody></table>`;
+}
+
+const ROOM_STATUS_LABEL = {AVAILABLE:'Disponible',OCCUPIED:'Occupée',RESERVED:'Réservée',CLEANING:'Nettoyage',MAINTENANCE:'Maintenance',BLOCKED:'Bloquée'};
+
+function renderRooms(){
+  const grid = document.getElementById('rooms-grid');
+  if(!cache.rooms.length){ grid.innerHTML = '<div class="empty-state">Aucune unité enregistrée. Ajoutez la première.</div>'; return; }
+  grid.innerHTML = cache.rooms.map(r=>`
+    <div class="room-card" data-id="${r.id}">
+      <div class="rname">${r.name}</div>
+      <div class="rtype">${r.type||''} · ${r.price ? fmtMoney(r.price)+'/nuit' : 'tarif à définir'}</div>
+      <span class="tag tag-${(r.status||'').toLowerCase()}">${ROOM_STATUS_LABEL[r.status]||r.status}</span>
+      ${r.note ? `<div style="font-size:11px;color:var(--coral);margin-top:6px;">${r.note}</div>` : ''}
+    </div>
+  `).join('');
+  grid.querySelectorAll('.room-card').forEach(c=>c.addEventListener('click', ()=>editRoom(c.dataset.id)));
+}
+
+function roomName(id){ const r = cache.rooms.find(x=>x.id===id); return r ? r.name : '—'; }
+
+const DOMAINE_UNITS_SEED = [
+  { name:"Suite VIP",     type:"Suite", capacity:2, price:0, note:"Pack Saint-Valentin 13-15/02/2026 : 750 000f (petit-déj + repas + 2 bouteilles de vin + excursions inclus)" },
+  { name:"Villa Riva",    type:"Villa", capacity:4, price:0, note:"Pack Saint-Valentin 13-15/02/2026 : 865 000f — 2 couples, 2 chambres vue mer (3 bouteilles de vin + excursions inclus)" },
+  { name:"Villa Falla",   type:"Villa", capacity:6, price:0, note:"Pack Saint-Valentin 13-15/02/2026 : 1 035 000f — 3 couples (4 bouteilles de vin + excursions inclus)" },
+  { name:"Villa Ebène",   type:"Villa", capacity:6, price:0, note:"Pack Saint-Valentin 13-15/02/2026 : 1 035 000f — 3 couples (4 bouteilles de vin + excursions inclus)" },
+  { name:"Studio Cabano", type:"Studio", capacity:2, price:0, note:"Pack Saint-Valentin 13-15/02/2026 : 510 000f — 1 couple (2 bouteilles de vin + excursions inclus)" },
+];
+
+document.getElementById('seed-rooms-btn').addEventListener('click', async ()=>{
+  const existingNames = cache.rooms.map(r=>r.name);
+  const toCreate = DOMAINE_UNITS_SEED.filter(u=>!existingNames.includes(u.name));
+  if(!toCreate.length){ toast('Ces 5 hébergements existent déjà.'); return; }
+  try{
+    const batch = db.batch();
+    toCreate.forEach(u=>{
+      const ref = db.collection('rooms').doc();
+      batch.set(ref, {...u, status:'AVAILABLE', createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    });
+    await batch.commit();
+    await logAudit('room.seed', `Import de ${toCreate.length} hébergement(s) réels`);
+    toast(`${toCreate.length} hébergement(s) importé(s). Pensez à définir le tarif standard/nuit de chacun (les montants notés sont ceux du pack Saint-Valentin, pas le tarif de base).`);
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+document.getElementById('add-room-btn').addEventListener('click', ()=>{
+  document.getElementById('room-id').value='';
+  document.getElementById('room-name').value='';
+  document.getElementById('room-type').value='Suite';
+  document.getElementById('room-capacity').value='';
+  document.getElementById('room-price').value='';
+  document.getElementById('room-note').value='';
+  document.getElementById('room-status').value='AVAILABLE';
+  openModal('modal-room');
+});
+
+function editRoom(id){
+  const r = cache.rooms.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('room-id').value = r.id;
+  document.getElementById('room-name').value = r.name||'';
+  document.getElementById('room-type').value = r.type||'Suite';
+  document.getElementById('room-capacity').value = r.capacity||'';
+  document.getElementById('room-price').value = r.price||'';
+  document.getElementById('room-note').value = r.note||'';
+  document.getElementById('room-status').value = r.status||'AVAILABLE';
+  openModal('modal-room');
+}
+
+document.getElementById('save-room-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('room-id').value;
+  const data = {
+    name: document.getElementById('room-name').value.trim(),
+    type: document.getElementById('room-type').value,
+    capacity: Number(document.getElementById('room-capacity').value)||0,
+    price: Number(document.getElementById('room-price').value)||0,
+    note: document.getElementById('room-note').value.trim(),
+    status: document.getElementById('room-status').value,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(!data.name){ toast('Le nom de l\'unité est requis.', 'danger'); return; }
+  try{
+    if(id){
+      await db.collection('rooms').doc(id).update(data);
+      await logAudit('room.update', `${data.name} → statut ${data.status}`);
+    }else{
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('rooms').add(data);
+      await logAudit('room.create', data.name);
+    }
+    closeModal('modal-room');
+    toast('Unité enregistrée.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+function renderRoomOptions(){
+  const sel = document.getElementById('resa-room');
+  const sel2 = document.getElementById('ticket-room');
+  const opts = cache.rooms.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+  if(sel) sel.innerHTML = opts;
+  if(sel2) sel2.innerHTML = opts;
+}
+
+const RESA_STATUS_LABEL = {PENDING:'En attente',CONFIRMED:'Confirmée',CHECKED_IN:'Check-in fait',CHECKED_OUT:'Check-out fait',CANCELLED:'Annulée',NO_SHOW:'No-show'};
+function statusLabel(s){ return RESA_STATUS_LABEL[s] || s || '—'; }
+
+function guestName(id){
+  const g = cache.guests.find(x=>x.id===id);
+  return g ? `${g.firstName||''} ${g.lastName||''}`.trim() : '—';
+}
+
+function renderGuestOptions(){
+  const sel = document.getElementById('resa-guest');
+  if(!sel) return;
+  sel.innerHTML = cache.guests.map(g=>`<option value="${g.id}">${g.firstName||''} ${g.lastName||''}</option>`).join('') || '<option value="">Aucun client — créez-en un d\'abord</option>';
+}
+
+function renderReservations(){
+  const tbody = document.getElementById('resa-tbody');
+  if(!cache.reservations.length){ tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucune réservation.</td></tr>'; return; }
+  tbody.innerHTML = cache.reservations.map(r=>`
+    <tr>
+      <td>${guestName(r.guestId)}</td>
+      <td>${roomName(r.roomId)}</td>
+      <td>${r.checkIn||''}</td>
+      <td>${r.checkOut||''}</td>
+      <td><span class="tag tag-${(r.status||'').toLowerCase()}">${statusLabel(r.status)}</span></td>
+      <td>${fmtMoney(r.rate)}/nuit</td>
+      <td style="white-space:nowrap;">
+        ${r.status==='CONFIRMED' ? `<button class="btn btn-sm btn-dark" onclick="checkIn('${r.id}')">Check-in</button>` : ''}
+        ${r.status==='CHECKED_IN' ? `<button class="btn btn-sm btn-coral" onclick="checkOut('${r.id}')">Check-out</button>` : ''}
+        <button class="btn btn-sm btn-ghost" onclick="editResa('${r.id}')">✎</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('add-resa-btn').addEventListener('click', ()=>{
+  if(!cache.guests.length){ toast('Créez d\'abord un client.', 'danger'); return; }
+  if(!cache.rooms.length){ toast('Créez d\'abord une unité.', 'danger'); return; }
+  document.getElementById('resa-id').value='';
+  document.getElementById('resa-checkin').value = todayStr();
+  document.getElementById('resa-checkout').value = todayStr();
+  document.getElementById('resa-guests-count').value = 2;
+  document.getElementById('resa-rate').value='';
+  document.getElementById('resa-source').value='Direct';
+  document.getElementById('resa-status').value='PENDING';
+  document.getElementById('resa-notes').value='';
+  document.getElementById('resa-conflict-warning').style.display='none';
+  renderGuestOptions(); renderRoomOptions();
+  openModal('modal-resa');
+});
+
+function editResa(id){
+  const r = cache.reservations.find(x=>x.id===id);
+  if(!r) return;
+  renderGuestOptions(); renderRoomOptions();
+  document.getElementById('resa-id').value = r.id;
+  document.getElementById('resa-guest').value = r.guestId;
+  document.getElementById('resa-room').value = r.roomId;
+  document.getElementById('resa-checkin').value = r.checkIn;
+  document.getElementById('resa-checkout').value = r.checkOut;
+  document.getElementById('resa-guests-count').value = r.guestsCount||2;
+  document.getElementById('resa-rate').value = r.rate||'';
+  document.getElementById('resa-source').value = r.source||'Direct';
+  document.getElementById('resa-status').value = r.status||'PENDING';
+  document.getElementById('resa-notes').value = r.notes||'';
+  document.getElementById('resa-conflict-warning').style.display='none';
+  openModal('modal-resa');
+}
+window.editResa = editResa;
+
+function hasConflict(roomId, checkIn, checkOut, excludeId){
+  return cache.reservations.some(r=>{
+    if(r.id===excludeId || r.roomId!==roomId) return false;
+    if(['CANCELLED','NO_SHOW','CHECKED_OUT'].includes(r.status)) return false;
+    return (checkIn < r.checkOut) && (checkOut > r.checkIn);
+  });
+}
+
+document.getElementById('save-resa-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('resa-id').value;
+  const roomId = document.getElementById('resa-room').value;
+  const checkIn = document.getElementById('resa-checkin').value;
+  const checkOut = document.getElementById('resa-checkout').value;
+  if(checkOut <= checkIn){ toast('La date de départ doit être après l\'arrivée.', 'danger'); return; }
+  if(hasConflict(roomId, checkIn, checkOut, id)){
+    document.getElementById('resa-conflict-warning').style.display='block';
+    return;
+  }
+  const data = {
+    guestId: document.getElementById('resa-guest').value,
+    roomId, checkIn, checkOut,
+    guestsCount: Number(document.getElementById('resa-guests-count').value)||1,
+    rate: Number(document.getElementById('resa-rate').value)||0,
+    source: document.getElementById('resa-source').value,
+    status: document.getElementById('resa-status').value,
+    notes: document.getElementById('resa-notes').value,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){
+      await db.collection('reservations').doc(id).update(data);
+      await logAudit('reservation.update', `${roomName(roomId)} ${checkIn}→${checkOut}`);
+    }else{
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('reservations').add(data);
+      await logAudit('reservation.create', `${roomName(roomId)} ${checkIn}→${checkOut}`);
+    }
+    closeModal('modal-resa');
+    toast('Réservation enregistrée.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.checkIn = async function(resaId){
+  const r = cache.reservations.find(x=>x.id===resaId);
+  if(!r) return;
+  if(hasConflict(r.roomId, r.checkIn, r.checkOut, r.id)){ toast('Conflit détecté sur cette unité.', 'danger'); return; }
+  await db.collection('reservations').doc(resaId).update({status:'CHECKED_IN', actualCheckIn: firebase.firestore.FieldValue.serverTimestamp()});
+  await db.collection('rooms').doc(r.roomId).update({status:'OCCUPIED'});
+  await logAudit('reservation.checkin', `${guestName(r.guestId)} → ${roomName(r.roomId)}`);
+  toast('Check-in effectué.');
+};
+
+window.checkOut = async function(resaId){
+  const r = cache.reservations.find(x=>x.id===resaId);
+  if(!r) return;
+  await db.collection('reservations').doc(resaId).update({status:'CHECKED_OUT', actualCheckOut: firebase.firestore.FieldValue.serverTimestamp()});
+  await db.collection('rooms').doc(r.roomId).update({status:'CLEANING'});
+  await logAudit('reservation.checkout', `${guestName(r.guestId)} → ${roomName(r.roomId)}`);
+  toast('Check-out effectué. Unité passée en nettoyage.');
+};
+
+function renderGuests(){
+  const tbody = document.getElementById('guests-tbody');
+  if(!cache.guests.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun client enregistré.</td></tr>'; return; }
+  tbody.innerHTML = cache.guests.map(g=>{
+    const stays = cache.reservations.filter(r=>r.guestId===g.id && r.status==='CHECKED_OUT');
+    const revenue = stays.reduce((s,r)=>{
+      const nights = (new Date(r.checkOut) - new Date(r.checkIn)) / 86400000;
+      return s + nights*(r.rate||0);
+    },0);
+    return `<tr>
+      <td>${g.firstName||''} ${g.lastName||''}</td>
+      <td>${g.phone||'—'}</td>
+      <td>${stays.length}</td>
+      <td>${fmtMoney(revenue)}</td>
+      <td>${g.tag ? `<span class="tag tag-confirmed">${g.tag}</span>` : '—'}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="editGuest('${g.id}')">✎</button></td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('add-guest-btn').addEventListener('click', ()=>{
+  ['guest-id','guest-lastname','guest-firstname','guest-phone','guest-email','guest-company','guest-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('guest-tag').value='';
+  openModal('modal-guest');
+});
+
+window.editGuest = function(id){
+  const g = cache.guests.find(x=>x.id===id);
+  if(!g) return;
+  document.getElementById('guest-id').value = g.id;
+  document.getElementById('guest-lastname').value = g.lastName||'';
+  document.getElementById('guest-firstname').value = g.firstName||'';
+  document.getElementById('guest-phone').value = g.phone||'';
+  document.getElementById('guest-email').value = g.email||'';
+  document.getElementById('guest-company').value = g.company||'';
+  document.getElementById('guest-tag').value = g.tag||'';
+  document.getElementById('guest-notes').value = g.notes||'';
+  openModal('modal-guest');
+};
+
+document.getElementById('save-guest-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('guest-id').value;
+  const data = {
+    lastName: document.getElementById('guest-lastname').value.trim(),
+    firstName: document.getElementById('guest-firstname').value.trim(),
+    phone: document.getElementById('guest-phone').value.trim(),
+    email: document.getElementById('guest-email').value.trim(),
+    company: document.getElementById('guest-company').value.trim(),
+    tag: document.getElementById('guest-tag').value,
+    notes: document.getElementById('guest-notes').value,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(!data.lastName){ toast('Le nom est requis.', 'danger'); return; }
+  try{
+    if(id){ await db.collection('guests').doc(id).update(data); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('guests').add(data); }
+    closeModal('modal-guest');
+    toast('Client enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+function renderEmployees(){
+  const tbody = document.getElementById('employees-tbody');
+  if(!cache.employees.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun employé enregistré.</td></tr>'; return; }
+  tbody.innerHTML = cache.employees.map(e=>`
+    <tr>
+      <td>${e.name}</td><td>${e.role}</td><td>${e.phone||'—'}</td>
+      <td><span class="tag tag-${e.status==='ACTIVE'?'confirmed':(e.status==='LEAVE'?'pending':'cancelled')}">${e.status==='ACTIVE'?'Actif':e.status==='LEAVE'?'En congé':'Inactif'}</span></td>
+      <td><button class="btn btn-sm btn-ghost" onclick="editEmployee('${e.id}')">✎</button></td>
+    </tr>`).join('');
+}
+
+document.getElementById('add-employee-btn').addEventListener('click', ()=>{
+  ['emp-id','emp-name','emp-phone','emp-start'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('emp-role').value='Réception';
+  document.getElementById('emp-status').value='ACTIVE';
+  openModal('modal-employee');
+});
+
+window.editEmployee = function(id){
+  const e = cache.employees.find(x=>x.id===id);
+  if(!e) return;
+  document.getElementById('emp-id').value=e.id;
+  document.getElementById('emp-name').value=e.name||'';
+  document.getElementById('emp-role').value=e.role||'Réception';
+  document.getElementById('emp-phone').value=e.phone||'';
+  document.getElementById('emp-start').value=e.startDate||'';
+  document.getElementById('emp-status').value=e.status||'ACTIVE';
+  openModal('modal-employee');
+};
+
+document.getElementById('save-employee-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('emp-id').value;
+  const data = {
+    name: document.getElementById('emp-name').value.trim(),
+    role: document.getElementById('emp-role').value,
+    phone: document.getElementById('emp-phone').value.trim(),
+    startDate: document.getElementById('emp-start').value,
+    status: document.getElementById('emp-status').value,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(!data.name){ toast('Le nom est requis.', 'danger'); return; }
+  try{
+    if(id){ await db.collection('employees').doc(id).update(data); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('employees').add(data); }
+    closeModal('modal-employee');
+    toast('Employé enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+function renderCash(){
+  const tbody = document.getElementById('cash-tbody');
+  const inTotal = cache.cashMoves.filter(m=>m.type==='IN').reduce((s,m)=>s+(m.amount||0),0);
+  const outTotal = cache.cashMoves.filter(m=>m.type==='OUT').reduce((s,m)=>s+(m.amount||0),0);
+  document.getElementById('cash-stats').innerHTML = `
+    <div class="stat-card accent-sage"><div class="label">Total entrées</div><div class="value">${fmtMoney(inTotal)}</div></div>
+    <div class="stat-card accent-coral"><div class="label">Total sorties</div><div class="value">${fmtMoney(outTotal)}</div></div>
+    <div class="stat-card"><div class="label">Solde</div><div class="value">${fmtMoney(inTotal-outTotal)}</div></div>
+  `;
+  if(!cache.cashMoves.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun mouvement.</td></tr>'; return; }
+  tbody.innerHTML = cache.cashMoves.map(m=>`
+    <tr><td>${fmtDate(m.createdAt)}</td>
+    <td>${m.type==='IN'?'Entrée':'Sortie'}</td>
+    <td>${fmtMoney(m.amount)}</td><td>${m.mode||'—'}</td><td>${m.note||'—'}</td></tr>
+  `).join('');
+}
+
+document.getElementById('add-cash-btn').addEventListener('click', ()=>{
+  document.getElementById('cash-type').value='IN';
+  document.getElementById('cash-amount').value='';
+  document.getElementById('cash-mode').value='Espèces';
+  document.getElementById('cash-note').value='';
+  openModal('modal-cash');
+});
+
+document.getElementById('save-cash-btn').addEventListener('click', async ()=>{
+  const amount = Number(document.getElementById('cash-amount').value)||0;
+  if(!amount){ toast('Montant requis.', 'danger'); return; }
+  const data = {
+    type: document.getElementById('cash-type').value,
+    amount, mode: document.getElementById('cash-mode').value,
+    note: document.getElementById('cash-note').value,
+    register: 'reception',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    await db.collection('cashTransactions').add(data);
+    await logAudit('cash.movement', `${data.type} ${fmtMoney(amount)} (${data.mode})`);
+    closeModal('modal-cash');
+    toast('Mouvement enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+const TICKET_STATUS_LABEL = {OPEN:'Ouvert',IN_PROGRESS:'En cours',RESOLVED:'Résolu',CLOSED:'Fermé'};
+function renderTickets(){
+  const tbody = document.getElementById('tickets-tbody');
+  if(!cache.tickets.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun ticket.</td></tr>'; return; }
+  tbody.innerHTML = cache.tickets.map(t=>`
+    <tr>
+      <td>${roomName(t.roomId)}</td><td>${t.description}</td>
+      <td><span class="tag tag-${t.priority==='CRITICAL'||t.priority==='HIGH'?'occupied':'pending'}">${t.priority}</span></td>
+      <td><span class="tag tag-${t.status==='RESOLVED'||t.status==='CLOSED'?'confirmed':'pending'}">${TICKET_STATUS_LABEL[t.status]||t.status}</span></td>
+      <td>${t.status!=='CLOSED' ? `<button class="btn btn-sm btn-dark" onclick="advanceTicket('${t.id}')">Avancer</button>` : ''}</td>
+    </tr>`).join('');
+}
+
+document.getElementById('add-ticket-btn').addEventListener('click', ()=>{
+  if(!cache.rooms.length){ toast('Créez d\'abord une unité.', 'danger'); return; }
+  renderRoomOptions();
+  document.getElementById('ticket-desc').value='';
+  document.getElementById('ticket-priority').value='MEDIUM';
+  openModal('modal-ticket');
+});
+
+document.getElementById('save-ticket-btn').addEventListener('click', async ()=>{
+  const desc = document.getElementById('ticket-desc').value.trim();
+  if(!desc){ toast('Description requise.', 'danger'); return; }
+  const roomId = document.getElementById('ticket-room').value;
+  try{
+    await db.collection('maintenanceTickets').add({
+      roomId, description: desc,
+      priority: document.getElementById('ticket-priority').value,
+      status:'OPEN', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('rooms').doc(roomId).update({status:'MAINTENANCE'});
+    await logAudit('maintenance.create', `${roomName(roomId)} — ${desc}`);
+    closeModal('modal-ticket');
+    toast('Ticket créé.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+const TICKET_FLOW = {OPEN:'IN_PROGRESS', IN_PROGRESS:'RESOLVED', RESOLVED:'CLOSED'};
+window.advanceTicket = async function(id){
+  const t = cache.tickets.find(x=>x.id===id);
+  if(!t) return;
+  const next = TICKET_FLOW[t.status] || 'CLOSED';
+  await db.collection('maintenanceTickets').doc(id).update({status: next});
+  if(next==='RESOLVED' || next==='CLOSED'){
+    const room = cache.rooms.find(r=>r.id===t.roomId);
+    if(room && room.status==='MAINTENANCE') await db.collection('rooms').doc(t.roomId).update({status:'AVAILABLE'});
+  }
+  await logAudit('maintenance.update', `${roomName(t.roomId)} → ${next}`);
+  toast('Ticket mis à jour.');
+};
+
+function renderHousekeeping(){
+  const el = document.getElementById('hk-list');
+  const toClean = cache.rooms.filter(r=>r.status==='CLEANING');
+  if(!toClean.length){ el.innerHTML = '<div class="empty-state">Aucune unité à nettoyer pour le moment.</div>'; return; }
+  el.innerHTML = toClean.map(r=>`
+    <div class="room-card">
+      <div class="rname">${r.name}</div>
+      <div class="rtype">${r.type||''}</div>
+      <button class="btn btn-sm btn-dark" style="margin-top:8px;" onclick="markClean('${r.id}')">Marquer prête</button>
+    </div>`).join('');
+}
+window.markClean = async function(id){
+  await db.collection('rooms').doc(id).update({status:'AVAILABLE'});
+  await logAudit('housekeeping.done', roomName(id));
+  toast('Unité marquée disponible.');
+};
+
+function renderAudit(){
+  const tbody = document.getElementById('audit-tbody');
+  if(!cache.audit || !cache.audit.length){ tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aucune entrée.</td></tr>'; return; }
+  tbody.innerHTML = cache.audit.map(a=>`
+    <tr><td>${fmtDate(a.createdAt)}</td><td>${a.userName||a.userEmail||'—'}</td><td>${a.action}</td><td>${a.detail||''}</td></tr>
+  `).join('');
+}
+
+// --- ADMINISTRATION : ACCÈS / CODES PIN --------------------------------------------
+function generatePin(){
+  const used = new Set(cache.employees.filter(e=>e.pin).map(e=>e.pin));
+  let pin;
+  do{ pin = String(Math.floor(1000 + Math.random()*9000)); }while(used.has(pin));
+  return pin;
+}
+
+function renderAccessList(){
+  const tbody = document.getElementById('access-tbody');
+  const withAccess = cache.employees.filter(e=>e.appRole);
+  if(!withAccess.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun accès attribué pour le moment.</td></tr>'; return; }
+  tbody.innerHTML = withAccess.map(e=>`
+    <tr>
+      <td>${e.name}</td>
+      <td>${(ROLES[e.appRole]||{}).label || e.appRole}</td>
+      <td style="font-family:monospace;letter-spacing:2px;">${e.pin}</td>
+      <td><span class="tag tag-${e.status==='INACTIVE'?'cancelled':'confirmed'}">${e.status==='INACTIVE'?'Suspendu':'Actif'}</span></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm btn-ghost" onclick="editAccess('${e.id}')">✎</button>
+        <button class="btn btn-sm btn-danger" onclick="revokeAccess('${e.id}')">Révoquer</button>
+      </td>
+    </tr>`).join('');
+}
+
+function fillAccessRoleOptions(selected){
+  const sel = document.getElementById('access-role');
+  const roleKeys = Object.keys(ROLES);
+  sel.innerHTML = roleKeys.map(k=>`<option value="${k}" ${k===selected?'selected':''}>${ROLES[k].label}</option>`).join('');
+}
+
+document.getElementById('add-access-btn').addEventListener('click', ()=>{
+  document.getElementById('access-modal-title').textContent = 'Attribuer un accès';
+  document.getElementById('access-employee-id').value = '';
+  document.getElementById('access-existing-wrap').style.display = 'block';
+  const existingSel = document.getElementById('access-existing-select');
+  const noAccessYet = cache.employees.filter(e=>!e.appRole);
+  existingSel.innerHTML = '<option value="">— Créer un nouveau profil —</option>' +
+    noAccessYet.map(e=>`<option value="${e.id}">${e.name} (${e.role||'sans fonction'})</option>`).join('');
+  existingSel.value = '';
+  document.getElementById('access-newname-wrap').style.display = 'block';
+  document.getElementById('access-new-name').value = '';
+  fillAccessRoleOptions('RECEPTION');
+  document.getElementById('access-pin').value = generatePin();
+  document.getElementById('pin-warning').style.display = 'none';
+  openModal('modal-access');
+});
+
+document.getElementById('access-existing-select').addEventListener('change', function(){
+  const isNew = !this.value;
+  document.getElementById('access-newname-wrap').style.display = isNew ? 'block' : 'none';
+  if(!isNew){
+    const emp = cache.employees.find(e=>e.id===this.value);
+    if(emp) document.getElementById('access-new-name').value = emp.name;
+  }
+});
+
+window.editAccess = function(id){
+  const e = cache.employees.find(x=>x.id===id);
+  if(!e) return;
+  document.getElementById('access-modal-title').textContent = `Modifier l'accès — ${e.name}`;
+  document.getElementById('access-employee-id').value = e.id;
+  document.getElementById('access-existing-wrap').style.display = 'none';
+  document.getElementById('access-newname-wrap').style.display = 'none';
+  document.getElementById('access-new-name').value = e.name;
+  fillAccessRoleOptions(e.appRole);
+  document.getElementById('access-pin').value = e.pin || generatePin();
+  document.getElementById('pin-warning').style.display = 'none';
+  openModal('modal-access');
+};
+
+document.getElementById('generate-pin-btn').addEventListener('click', ()=>{
+  document.getElementById('access-pin').value = generatePin();
+  document.getElementById('pin-warning').style.display = 'none';
+});
+
+document.getElementById('access-pin').addEventListener('input', function(){
+  this.value = this.value.replace(/\D/g,'').slice(0,4);
+});
+
+document.getElementById('save-access-btn').addEventListener('click', async ()=>{
+  const pin = document.getElementById('access-pin').value.trim();
+  const role = document.getElementById('access-role').value;
+  const editingId = document.getElementById('access-employee-id').value;
+  if(pin.length!==4){ toast('Le code doit contenir exactement 4 chiffres.', 'danger'); return; }
+  const conflict = cache.employees.find(e=>e.pin===pin && e.id!==editingId);
+  if(conflict){ document.getElementById('pin-warning').style.display='block'; return; }
+
+  try{
+    if(editingId){
+      await db.collection('employees').doc(editingId).update({ appRole: role, pin, status:'ACTIVE', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await logAudit('access.update', `${document.getElementById('access-new-name').value} → ${(ROLES[role]||{}).label}`);
+    }else{
+      const existingId = document.getElementById('access-existing-select').value;
+      if(existingId){
+        await db.collection('employees').doc(existingId).update({ appRole: role, pin, status:'ACTIVE', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        await logAudit('access.grant', `${document.getElementById('access-new-name').value} → ${(ROLES[role]||{}).label}`);
+      }else{
+        const name = document.getElementById('access-new-name').value.trim();
+        if(!name){ toast('Le nom est requis.', 'danger'); return; }
+        await db.collection('employees').add({
+          name, role:'Accès application', appRole: role, pin, status:'ACTIVE',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await logAudit('access.grant', `Nouveau profil ${name} → ${(ROLES[role]||{}).label}`);
+      }
+    }
+    closeModal('modal-access');
+    toast('Accès enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.revokeAccess = async function(id){
+  const e = cache.employees.find(x=>x.id===id);
+  if(!e) return;
+  try{
+    await db.collection('employees').doc(id).update({ appRole: firebase.firestore.FieldValue.delete(), pin: firebase.firestore.FieldValue.delete() });
+    await logAudit('access.revoke', e.name);
+    toast(`Accès révoqué pour ${e.name}.`);
+  }catch(err){ toast('Erreur : '+err.message, 'danger'); }
+};
+
+// --- PLANNING DU PERSONNEL ---------------------------------------------------------
+const SHIFT_TYPE_LABEL = {SHIFT:'Travail',REST:'Repos',LEAVE:'Congé',ABSENCE:'Absence'};
+const SHIFT_TYPE_TAG   = {SHIFT:'confirmed',REST:'blocked',LEAVE:'pending',ABSENCE:'occupied'};
+const DAY_LABELS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+function updateWeekLabel(){
+  const end = addDays(currentWeekStart,6);
+  const fmt = d=>d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+  document.getElementById('week-label').textContent = `${fmt(currentWeekStart)} → ${fmt(end)}`;
+}
+
+document.getElementById('week-prev-btn').addEventListener('click', ()=>{
+  currentWeekStart = addDays(currentWeekStart,-7);
+  updateWeekLabel(); subscribePlanningWeek();
+});
+document.getElementById('week-next-btn').addEventListener('click', ()=>{
+  currentWeekStart = addDays(currentWeekStart,7);
+  updateWeekLabel(); subscribePlanningWeek();
+});
+
+function shiftFor(employeeId, dStr){
+  return cache.shifts.find(s=>s.employeeId===employeeId && s.date===dStr);
+}
+
+function renderPlanningGrid(){
+  updateWeekLabel();
+  const table = document.getElementById('planning-table');
+  const activeEmployees = cache.employees.filter(e=>e.status==='ACTIVE' || !e.status);
+  const days = [...Array(7)].map((_,i)=>addDays(currentWeekStart,i));
+
+  const thead = table.querySelector('thead');
+  thead.innerHTML = '<tr><th>Employé</th>' + days.map(d=>`<th>${DAY_LABELS[d.getDay()===0?6:d.getDay()-1]} ${d.getDate()}</th>`).join('') + '</tr>';
+
+  const tbody = table.querySelector('tbody');
+  if(!activeEmployees.length){ tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Aucun employé actif. Ajoutez du personnel dans l'onglet Personnel.</td></tr>`; return; }
+
+  tbody.innerHTML = activeEmployees.map(e=>{
+    const cells = days.map(d=>{
+      const dStr = dateStr(d);
+      const s = shiftFor(e.id, dStr);
+      const content = s
+        ? `<span class="tag tag-${SHIFT_TYPE_TAG[s.type]}" style="display:block;">${SHIFT_TYPE_LABEL[s.type]}</span>${s.type==='SHIFT' ? `<div style="font-size:10.5px;color:var(--ink-soft);margin-top:3px;">${s.startTime||''}-${s.endTime||''}</div>` : ''}`
+        : `<span style="color:var(--line);font-size:16px;">+</span>`;
+      return `<td style="text-align:center;cursor:pointer;padding:8px 6px;" onclick="openShiftModal('${e.id}','${dStr}')">${content}</td>`;
+    }).join('');
+    return `<tr><td style="font-weight:600;white-space:nowrap;">${e.name}</td>${cells}</tr>`;
+  }).join('');
+}
+
+window.openShiftModal = function(employeeId, dStr){
+  const s = shiftFor(employeeId, dStr);
+  const emp = cache.employees.find(e=>e.id===employeeId);
+  document.getElementById('shift-modal-title').textContent = `${emp ? emp.name : ''} — ${new Date(dStr).toLocaleDateString('fr-FR')}`;
+  document.getElementById('shift-employee-id').value = employeeId;
+  document.getElementById('shift-date').value = dStr;
+  document.getElementById('shift-type').value = s ? s.type : 'SHIFT';
+  document.getElementById('shift-start').value = s ? (s.startTime||'08:00') : '08:00';
+  document.getElementById('shift-end').value = s ? (s.endTime||'17:00') : '17:00';
+  document.getElementById('shift-note').value = s ? (s.note||'') : '';
+  document.getElementById('delete-shift-btn').style.display = s ? 'inline-block' : 'none';
+  toggleShiftTimeFields();
+  openModal('modal-shift');
+};
+
+function toggleShiftTimeFields(){
+  document.getElementById('shift-time-fields').style.display = document.getElementById('shift-type').value==='SHIFT' ? 'grid' : 'none';
+}
+document.getElementById('shift-type').addEventListener('change', toggleShiftTimeFields);
+
+document.getElementById('save-shift-btn').addEventListener('click', async ()=>{
+  const employeeId = document.getElementById('shift-employee-id').value;
+  const date = document.getElementById('shift-date').value;
+  const type = document.getElementById('shift-type').value;
+  const data = {
+    employeeId, date, type,
+    startTime: type==='SHIFT' ? document.getElementById('shift-start').value : null,
+    endTime: type==='SHIFT' ? document.getElementById('shift-end').value : null,
+    note: document.getElementById('shift-note').value.trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    await db.collection('shifts').doc(`${employeeId}_${date}`).set(data, {merge:true});
+    await logAudit('planning.set', `${employeeName(employeeId)} ${date} → ${SHIFT_TYPE_LABEL[type]}`);
+    closeModal('modal-shift');
+    toast('Créneau enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+document.getElementById('delete-shift-btn').addEventListener('click', async ()=>{
+  const employeeId = document.getElementById('shift-employee-id').value;
+  const date = document.getElementById('shift-date').value;
+  try{
+    await db.collection('shifts').doc(`${employeeId}_${date}`).delete();
+    await logAudit('planning.delete', `${employeeName(employeeId)} ${date}`);
+    closeModal('modal-shift');
+    toast('Créneau supprimé.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+function employeeName(id){ const e = cache.employees.find(x=>x.id===id); return e ? e.name : '—'; }
+
+// --- CUISINE : STOCK ------------------------------------------------------------
+function renderKitchenStock(){
+  const tbody = document.getElementById('stock-tbody');
+  if(!cache.kitchenStock.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun ingrédient enregistré.</td></tr>'; return; }
+  tbody.innerHTML = cache.kitchenStock.map(i=>{
+    const low = Number(i.quantity) <= Number(i.minStock);
+    return `<tr>
+      <td>${i.name}</td>
+      <td style="${low?'color:var(--danger);font-weight:600;':''}">${i.quantity} ${i.unit}${low?' ⚠':''}</td>
+      <td>${i.minStock} ${i.unit}</td>
+      <td>${fmtMoney(i.costPerUnit)}</td>
+      <td>${fmtMoney((i.quantity||0)*(i.costPerUnit||0))}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="editStock('${i.id}')">✎</button></td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('add-stock-btn').addEventListener('click', ()=>{
+  ['stock-id','stock-name','stock-qty','stock-min','stock-cost'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('stock-unit').value='g';
+  openModal('modal-stock');
+});
+
+window.editStock = function(id){
+  const i = cache.kitchenStock.find(x=>x.id===id);
+  if(!i) return;
+  document.getElementById('stock-id').value=i.id;
+  document.getElementById('stock-name').value=i.name||'';
+  document.getElementById('stock-unit').value=i.unit||'g';
+  document.getElementById('stock-qty').value=i.quantity||0;
+  document.getElementById('stock-min').value=i.minStock||0;
+  document.getElementById('stock-cost').value=i.costPerUnit||0;
+  openModal('modal-stock');
+};
+
+document.getElementById('save-stock-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('stock-id').value;
+  const data = {
+    name: document.getElementById('stock-name').value.trim(),
+    unit: document.getElementById('stock-unit').value,
+    quantity: Number(document.getElementById('stock-qty').value)||0,
+    minStock: Number(document.getElementById('stock-min').value)||0,
+    costPerUnit: Number(document.getElementById('stock-cost').value)||0,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(!data.name){ toast('Le nom de l\'ingrédient est requis.', 'danger'); return; }
+  try{
+    if(id){ await db.collection('kitchenStock').doc(id).update(data); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('kitchenStock').add(data); }
+    closeModal('modal-stock');
+    toast('Ingrédient enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+// --- CUISINE : FICHES TECHNIQUES -------------------------------------------------
+function ingredientCost(row){
+  const item = cache.kitchenStock.find(x=>x.id===row.itemId);
+  return item ? Number(row.qty||0) * Number(item.costPerUnit||0) : 0;
+}
+
+function renderIngredientRows(){
+  const wrap = document.getElementById('recipe-ingredients-rows');
+  wrap.innerHTML = recipeIngredientRows.map((row,idx)=>`
+    <div class="ing-row" data-idx="${idx}">
+      <select onchange="updateIngRow(${idx}, 'itemId', this.value)">
+        <option value="">— choisir —</option>
+        ${cache.kitchenStock.map(i=>`<option value="${i.id}" ${row.itemId===i.id?'selected':''}>${i.name} (${i.unit})</option>`).join('')}
+      </select>
+      <input type="number" placeholder="Qté" value="${row.qty||''}" onchange="updateIngRow(${idx}, 'qty', this.value)">
+      <button type="button" onclick="removeIngRow(${idx})">✕</button>
+    </div>
+  `).join('') || '<div class="empty-state" style="padding:14px;">Aucun ingrédient. Ajoutez le premier.</div>';
+  updateRecipePreview();
+}
+
+window.updateIngRow = function(idx, field, value){
+  recipeIngredientRows[idx][field] = field==='qty' ? Number(value) : value;
+  updateRecipePreview();
+};
+window.removeIngRow = function(idx){
+  recipeIngredientRows.splice(idx,1);
+  renderIngredientRows();
+};
+
+document.getElementById('add-ingredient-row-btn').addEventListener('click', ()=>{
+  if(!cache.kitchenStock.length){ toast('Ajoutez d\'abord des ingrédients au stock cuisine.', 'danger'); return; }
+  recipeIngredientRows.push({itemId:'', qty:0});
+  renderIngredientRows();
+});
+
+function updateRecipePreview(){
+  const cost = recipeIngredientRows.reduce((s,r)=>s+ingredientCost(r),0);
+  const price = Number(document.getElementById('recipe-price').value)||0;
+  const margin = price - cost;
+  const pct = price>0 ? Math.round((cost/price)*100) : 0;
+  document.getElementById('recipe-cost-preview').textContent = fmtMoney(cost);
+  document.getElementById('recipe-margin-preview').textContent = fmtMoney(margin);
+  const fcEl = document.getElementById('recipe-foodcost-preview');
+  fcEl.textContent = pct + '%';
+  fcEl.className = pct===0 ? '' : (pct<=30 ? 'foodcost-good' : (pct<=40 ? 'foodcost-warn' : 'foodcost-bad'));
+}
+document.getElementById('recipe-price').addEventListener('input', updateRecipePreview);
+
+function renderRecipes(){
+  const wrap = document.getElementById('recipes-list');
+  if(!cache.recipes.length){ wrap.innerHTML = '<div class="empty-state">Aucune fiche technique enregistrée.</div>'; return; }
+  wrap.innerHTML = cache.recipes.map(r=>{
+    const cost = (r.ingredients||[]).reduce((s,row)=>s+ingredientCost(row),0);
+    const margin = (r.sellingPrice||0) - cost;
+    const pct = r.sellingPrice ? Math.round((cost/r.sellingPrice)*100) : 0;
+    const pctClass = pct<=30 ? 'foodcost-good' : (pct<=40 ? 'foodcost-warn' : 'foodcost-bad');
+    return `<div class="recipe-card">
+      <div class="rhead">
+        <h4>${r.dishName}</h4>
+        <div>
+          <button class="btn btn-sm btn-dark" onclick="sellDish('${r.id}')">Enregistrer une vente</button>
+          <button class="btn btn-sm btn-ghost" onclick="editRecipe('${r.id}')">✎</button>
+        </div>
+      </div>
+      <div class="recipe-metrics">
+        <span>Prix de vente : <b>${fmtMoney(r.sellingPrice)}</b></span>
+        <span>Coût matière : <b>${fmtMoney(cost)}</b></span>
+        <span>Marge : <b>${fmtMoney(margin)}</b></span>
+        <span>Food cost : <b class="${pctClass}">${pct}%</b></span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('add-recipe-btn').addEventListener('click', ()=>{
+  if(!cache.kitchenStock.length){ toast('Ajoutez d\'abord des ingrédients au stock cuisine.', 'danger'); return; }
+  document.getElementById('recipe-id').value='';
+  document.getElementById('recipe-name').value='';
+  document.getElementById('recipe-price').value='';
+  recipeIngredientRows = [{itemId:'', qty:0}];
+  renderIngredientRows();
+  openModal('modal-recipe');
+});
+
+window.editRecipe = function(id){
+  const r = cache.recipes.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('recipe-id').value = r.id;
+  document.getElementById('recipe-name').value = r.dishName||'';
+  document.getElementById('recipe-price').value = r.sellingPrice||'';
+  recipeIngredientRows = (r.ingredients||[]).map(row=>({...row}));
+  renderIngredientRows();
+  openModal('modal-recipe');
+};
+
+document.getElementById('save-recipe-btn').addEventListener('click', async ()=>{
+  const dishName = document.getElementById('recipe-name').value.trim();
+  const sellingPrice = Number(document.getElementById('recipe-price').value)||0;
+  const ingredients = recipeIngredientRows.filter(r=>r.itemId && r.qty>0);
+  if(!dishName){ toast('Le nom du plat est requis.', 'danger'); return; }
+  if(!ingredients.length){ toast('Ajoutez au moins un ingrédient valide.', 'danger'); return; }
+  const id = document.getElementById('recipe-id').value;
+  const data = { dishName, sellingPrice, ingredients, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+  try{
+    if(id){ await db.collection('recipes').doc(id).update(data); await logAudit('recipe.update', dishName); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('recipes').add(data); await logAudit('recipe.create', dishName); }
+    closeModal('modal-recipe');
+    toast('Fiche technique enregistrée.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.sellDish = async function(recipeId){
+  const r = cache.recipes.find(x=>x.id===recipeId);
+  if(!r) return;
+  try{
+    const batch = db.batch();
+    (r.ingredients||[]).forEach(row=>{
+      const item = cache.kitchenStock.find(x=>x.id===row.itemId);
+      if(item){
+        const newQty = Math.max(0, Number(item.quantity||0) - Number(row.qty||0));
+        batch.update(db.collection('kitchenStock').doc(item.id), {quantity:newQty});
+      }
+    });
+    await batch.commit();
+    await logAudit('recipe.sale', `${r.dishName} — stock déduit`);
+    toast(`Vente enregistrée : stock déduit pour "${r.dishName}".`);
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+};
+
+// --- RESTAURANT & BAR : TABLES ---------------------------------------------------
+function openOrderForTable(tableId){
+  return cache.orders.find(o=>o.tableId===tableId && o.status==='OPEN');
+}
+
+function renderTables(){
+  const grid = document.getElementById('tables-grid');
+  if(!cache.tables.length){ grid.innerHTML = '<div class="empty-state">Aucune table enregistrée. Ajoutez la première.</div>'; return; }
+  grid.innerHTML = cache.tables.map(t=>{
+    const order = openOrderForTable(t.id);
+    const status = order ? 'OCCUPIED' : 'AVAILABLE';
+    return `<div class="room-card" data-id="${t.id}">
+      <div class="rname">${t.name}</div>
+      <div class="rtype">${t.zone||''} · ${t.seats||'—'} places</div>
+      <span class="tag tag-${status.toLowerCase()}">${order ? 'Occupée' : 'Libre'}</span>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.room-card').forEach(c=>c.addEventListener('click', ()=>openOrderModal(c.dataset.id)));
+}
+
+document.getElementById('add-table-btn').addEventListener('click', ()=>{
+  ['table-id','table-name','table-zone','table-seats'].forEach(id=>document.getElementById(id).value='');
+  openModal('modal-table');
+});
+
+document.getElementById('save-table-btn').addEventListener('click', async ()=>{
+  const name = document.getElementById('table-name').value.trim();
+  if(!name){ toast('Le nom de la table est requis.', 'danger'); return; }
+  try{
+    await db.collection('tables').add({
+      name, zone: document.getElementById('table-zone').value.trim(),
+      seats: Number(document.getElementById('table-seats').value)||0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    closeModal('modal-table');
+    toast('Table ajoutée.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+// --- RESTAURANT & BAR : MENU ------------------------------------------------------
+function renderMenu(){
+  const tbody = document.getElementById('menu-tbody');
+  if(!cache.menuItems.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun article. Construisez la carte.</td></tr>'; return; }
+  tbody.innerHTML = cache.menuItems.map(m=>`
+    <tr>
+      <td>${m.name}</td><td>${m.category}</td><td>${fmtMoney(m.price)}</td>
+      <td>${m.station==='bar'?'Bar':'Cuisine'}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="editMenuItem('${m.id}')">✎</button></td>
+    </tr>`).join('');
+}
+
+document.getElementById('add-menuitem-btn').addEventListener('click', ()=>{
+  ['menuitem-id','menuitem-name','menuitem-price'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('menuitem-category').value='Cuisine camerounaise';
+  document.getElementById('menuitem-station').value='cuisine';
+  document.getElementById('menuitem-recipe').innerHTML = '<option value="">— aucune —</option>' +
+    cache.recipes.map(r=>`<option value="${r.id}">${r.dishName}</option>`).join('');
+  openModal('modal-menuitem');
+});
+
+window.editMenuItem = function(id){
+  const m = cache.menuItems.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById('menuitem-id').value=m.id;
+  document.getElementById('menuitem-name').value=m.name||'';
+  document.getElementById('menuitem-category').value=m.category||'Cuisine camerounaise';
+  document.getElementById('menuitem-station').value=m.station||'cuisine';
+  document.getElementById('menuitem-price').value=m.price||'';
+  document.getElementById('menuitem-recipe').innerHTML = '<option value="">— aucune —</option>' +
+    cache.recipes.map(r=>`<option value="${r.id}" ${m.recipeId===r.id?'selected':''}>${r.dishName}</option>`).join('');
+  openModal('modal-menuitem');
+};
+
+document.getElementById('save-menuitem-btn').addEventListener('click', async ()=>{
+  const name = document.getElementById('menuitem-name').value.trim();
+  if(!name){ toast('Le nom de l\'article est requis.', 'danger'); return; }
+  const id = document.getElementById('menuitem-id').value;
+  const data = {
+    name, category: document.getElementById('menuitem-category').value,
+    station: document.getElementById('menuitem-station').value,
+    price: Number(document.getElementById('menuitem-price').value)||0,
+    recipeId: document.getElementById('menuitem-recipe').value || null,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){ await db.collection('menuItems').doc(id).update(data); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('menuItems').add(data); }
+    closeModal('modal-menuitem');
+    toast('Article enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+// --- RESTAURANT & BAR : COMMANDES --------------------------------------------------
+function renderOrderRows(){
+  const wrap = document.getElementById('order-items-rows');
+  wrap.innerHTML = orderItemRows.map((row,idx)=>`
+    <div class="order-row" data-idx="${idx}">
+      <select onchange="updateOrderRow(${idx}, 'menuItemId', this.value)">
+        <option value="">— choisir —</option>
+        ${cache.menuItems.map(m=>`<option value="${m.id}" ${row.menuItemId===m.id?'selected':''}>${m.name} (${fmtMoney(m.price)})</option>`).join('')}
+      </select>
+      <input type="number" placeholder="Qté" value="${row.qty||''}" onchange="updateOrderRow(${idx}, 'qty', this.value)">
+      <button type="button" onclick="removeOrderRow(${idx})">✕</button>
+    </div>
+  `).join('') || '<div class="empty-state" style="padding:14px;">Aucun article. Ajoutez le premier.</div>';
+  updateOrderPreview();
+}
+
+window.updateOrderRow = function(idx, field, value){
+  orderItemRows[idx][field] = field==='qty' ? Number(value) : value;
+  updateOrderPreview();
+};
+window.removeOrderRow = function(idx){ orderItemRows.splice(idx,1); renderOrderRows(); };
+
+document.getElementById('add-order-row-btn').addEventListener('click', ()=>{
+  if(!cache.menuItems.length){ toast('Ajoutez d\'abord des articles à la carte.', 'danger'); return; }
+  orderItemRows.push({menuItemId:'', qty:1});
+  renderOrderRows();
+});
+
+function updateOrderPreview(){
+  const total = orderItemRows.reduce((s,r)=>{
+    const m = cache.menuItems.find(x=>x.id===r.menuItemId);
+    return s + (m ? m.price*Number(r.qty||0) : 0);
+  },0);
+  document.getElementById('order-total-preview').textContent = fmtMoney(total);
+}
+
+function openOrderModal(tableId){
+  if(!cache.menuItems.length){ toast('Ajoutez d\'abord des articles à la carte.', 'danger'); return; }
+  activeOrderTableId = tableId;
+  const table = cache.tables.find(t=>t.id===tableId);
+  document.getElementById('order-modal-title').textContent = `Commande — ${table ? table.name : ''}`;
+  orderItemRows = [{menuItemId:'', qty:1}];
+  renderOrderRows();
+  openModal('modal-order');
+}
+
+document.getElementById('save-order-btn').addEventListener('click', async ()=>{
+  const validRows = orderItemRows.filter(r=>r.menuItemId && r.qty>0);
+  if(!validRows.length){ toast('Ajoutez au moins un article valide.', 'danger'); return; }
+  const newItems = validRows.map(r=>{
+    const m = cache.menuItems.find(x=>x.id===r.menuItemId);
+    return { menuItemId:r.menuItemId, name:m.name, price:m.price, station:m.station, qty:r.qty, status:'NEW' };
+  });
+  try{
+    const existing = openOrderForTable(activeOrderTableId);
+    if(existing){
+      await db.collection('orders').doc(existing.id).update({ items: [...existing.items, ...newItems] });
+      await logAudit('order.additems', `Table ${roomFreeText(activeOrderTableId)} +${newItems.length} article(s)`);
+    }else{
+      await db.collection('orders').add({
+        tableId: activeOrderTableId, status:'OPEN', items:newItems,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await logAudit('order.create', `Nouvelle commande — table ${roomFreeText(activeOrderTableId)}`);
+    }
+    closeModal('modal-order');
+    toast('Commande envoyée en cuisine/bar.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+function roomFreeText(tableId){ const t = cache.tables.find(x=>x.id===tableId); return t ? t.name : '—'; }
+
+const ORDER_ITEM_STATUS_LABEL = {NEW:'Envoyé',PREPARING:'En préparation',READY:'Prêt',SERVED:'Servi',CANCELLED:'Annulé'};
+
+async function updateOrderItemStatus(orderId, itemIdx, newStatus){
+  const order = cache.orders.find(o=>o.id===orderId);
+  if(!order) return;
+  const items = order.items.map((it,i)=> i===itemIdx ? {...it, status:newStatus} : it);
+  await db.collection('orders').doc(orderId).update({items});
+}
+window.advanceKitchenItem = function(orderId, idx){
+  const order = cache.orders.find(o=>o.id===orderId);
+  const item = order.items[idx];
+  const next = item.status==='NEW' ? 'PREPARING' : 'READY';
+  updateOrderItemStatus(orderId, idx, next);
+};
+window.markServed = function(orderId, idx){ updateOrderItemStatus(orderId, idx, 'SERVED'); };
+
+function renderKds(){
+  const cuisineEl = document.getElementById('kds-cuisine-list');
+  const barEl = document.getElementById('kds-bar-list');
+  const cuisineCards = [], barCards = [];
+  cache.orders.forEach(o=>{
+    (o.items||[]).forEach((it,idx)=>{
+      if(!['NEW','PREPARING'].includes(it.status)) return;
+      const card = `<div class="kds-card">
+        <div class="kname">${it.qty}× ${it.name}</div>
+        <div class="ktable">Table ${roomFreeText(o.tableId)} · <span class="tag tag-${it.status==='NEW'?'pending':'reserved'}">${ORDER_ITEM_STATUS_LABEL[it.status]}</span></div>
+        <button class="btn btn-sm btn-dark" onclick="advanceKitchenItem('${o.id}', ${idx})">${it.status==='NEW' ? 'Commencer' : 'Marquer prêt'}</button>
+      </div>`;
+      if(it.station==='bar') barCards.push(card); else cuisineCards.push(card);
+    });
+  });
+  cuisineEl.innerHTML = cuisineCards.join('') || '<div class="empty-state">Aucune commande en attente.</div>';
+  barEl.innerHTML = barCards.join('') || '<div class="empty-state">Aucune commande en attente.</div>';
+}
+
+function renderOrders(){
+  const wrap = document.getElementById('orders-list');
+  if(!cache.orders.length){ wrap.innerHTML = '<div class="empty-state">Aucune commande en cours.</div>'; return; }
+  wrap.innerHTML = cache.orders.map(o=>{
+    const total = (o.items||[]).filter(it=>it.status!=='CANCELLED').reduce((s,it)=>s+it.price*it.qty,0);
+    const lines = (o.items||[]).map((it,idx)=>`
+      <div class="order-item-line">
+        <span>${it.qty}× ${it.name} <span class="tag tag-${it.status==='SERVED'?'confirmed':it.status==='READY'?'reserved':'pending'}" style="margin-left:6px;">${ORDER_ITEM_STATUS_LABEL[it.status]}</span></span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          ${fmtMoney(it.price*it.qty)}
+          ${it.status==='READY' ? `<button class="btn btn-sm btn-dark" onclick="markServed('${o.id}', ${idx})">Servi</button>` : ''}
+        </span>
+      </div>`).join('');
+    return `<div class="order-card">
+      <div class="ohead"><h4>Table ${roomFreeText(o.tableId)}</h4>
+        <button class="btn btn-sm btn-coral" onclick="closeOrder('${o.id}')">Encaisser & clôturer (${fmtMoney(total)})</button>
+      </div>
+      ${lines}
+    </div>`;
+  }).join('');
+}
+
+window.closeOrder = async function(orderId){
+  const order = cache.orders.find(o=>o.id===orderId);
+  if(!order) return;
+  const total = (order.items||[]).filter(it=>it.status!=='CANCELLED').reduce((s,it)=>s+it.price*it.qty,0);
+  try{
+    await db.collection('orders').doc(orderId).update({status:'CLOSED', closedAt: firebase.firestore.FieldValue.serverTimestamp()});
+    await db.collection('cashTransactions').add({
+      type:'IN', amount: total, mode:'Espèces', register:'restaurant',
+      note:`Table ${roomFreeText(order.tableId)} — vérifier le mode de paiement réel dans Caisse`,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await logAudit('order.close', `Table ${roomFreeText(order.tableId)} — ${fmtMoney(total)}`);
+    toast('Table encaissée et libérée. Vérifiez le mode de paiement dans Caisse si ce n\'était pas des espèces.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+};
+
+// --- ACHATS : FOURNISSEURS ---------------------------------------------------------
+function renderSuppliers(){
+  const tbody = document.getElementById('suppliers-tbody');
+  if(!cache.suppliers.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun fournisseur enregistré.</td></tr>'; return; }
+  tbody.innerHTML = cache.suppliers.map(s=>`
+    <tr>
+      <td>${s.name}</td><td>${s.phone||'—'}</td><td>${s.category||'—'}</td><td>${s.products||'—'}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="editSupplier('${s.id}')">✎</button></td>
+    </tr>`).join('');
+}
+
+document.getElementById('add-supplier-btn').addEventListener('click', ()=>{
+  ['supplier-id','supplier-name','supplier-phone','supplier-email','supplier-address','supplier-products','supplier-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('supplier-category').value='Alimentation';
+  openModal('modal-supplier');
+});
+
+window.editSupplier = function(id){
+  const s = cache.suppliers.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('supplier-id').value=s.id;
+  document.getElementById('supplier-name').value=s.name||'';
+  document.getElementById('supplier-phone').value=s.phone||'';
+  document.getElementById('supplier-email').value=s.email||'';
+  document.getElementById('supplier-category').value=s.category||'Alimentation';
+  document.getElementById('supplier-address').value=s.address||'';
+  document.getElementById('supplier-products').value=s.products||'';
+  document.getElementById('supplier-notes').value=s.notes||'';
+  openModal('modal-supplier');
+};
+
+document.getElementById('save-supplier-btn').addEventListener('click', async ()=>{
+  const name = document.getElementById('supplier-name').value.trim();
+  if(!name){ toast('Le nom du fournisseur est requis.', 'danger'); return; }
+  const id = document.getElementById('supplier-id').value;
+  const data = {
+    name, phone: document.getElementById('supplier-phone').value.trim(),
+    email: document.getElementById('supplier-email').value.trim(),
+    category: document.getElementById('supplier-category').value,
+    address: document.getElementById('supplier-address').value.trim(),
+    products: document.getElementById('supplier-products').value.trim(),
+    notes: document.getElementById('supplier-notes').value,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){ await db.collection('suppliers').doc(id).update(data); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('suppliers').add(data); }
+    closeModal('modal-supplier');
+    toast('Fournisseur enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+// --- ACHATS : BONS DE COMMANDE ------------------------------------------------------
+function renderPoRows(){
+  const wrap = document.getElementById('po-items-rows');
+  wrap.innerHTML = poItemRows.map((row,idx)=>`
+    <div class="po-row" data-idx="${idx}">
+      <select onchange="updatePoRow(${idx}, 'itemId', this.value)">
+        <option value="">— choisir —</option>
+        ${cache.kitchenStock.map(i=>`<option value="${i.id}" ${row.itemId===i.id?'selected':''}>${i.name} (${i.unit})</option>`).join('')}
+      </select>
+      <input type="number" placeholder="Qté" value="${row.qty||''}" onchange="updatePoRow(${idx}, 'qty', this.value)">
+      <input type="number" placeholder="P.U." value="${row.unitCost||''}" onchange="updatePoRow(${idx}, 'unitCost', this.value)">
+      <button type="button" onclick="removePoRow(${idx})">✕</button>
+    </div>
+  `).join('') || '<div class="empty-state" style="padding:14px;">Aucun article. Ajoutez le premier.</div>';
+  updatePoPreview();
+}
+
+window.updatePoRow = function(idx, field, value){
+  poItemRows[idx][field] = field==='itemId' ? value : Number(value);
+  if(field==='itemId'){
+    const item = cache.kitchenStock.find(x=>x.id===value);
+    if(item && !poItemRows[idx].unitCost) poItemRows[idx].unitCost = item.costPerUnit||0;
+  }
+  renderPoRows();
+};
+window.removePoRow = function(idx){ poItemRows.splice(idx,1); renderPoRows(); };
+
+document.getElementById('add-po-row-btn').addEventListener('click', ()=>{
+  if(!cache.kitchenStock.length){ toast('Ajoutez d\'abord des ingrédients au stock cuisine.', 'danger'); return; }
+  poItemRows.push({itemId:'', qty:0, unitCost:0});
+  renderPoRows();
+});
+
+function updatePoPreview(){
+  const total = poItemRows.reduce((s,r)=>s+Number(r.qty||0)*Number(r.unitCost||0),0);
+  document.getElementById('po-total-preview').textContent = fmtMoney(total);
+}
+
+document.getElementById('add-po-btn').addEventListener('click', ()=>{
+  if(!cache.suppliers.length){ toast('Créez d\'abord un fournisseur.', 'danger'); return; }
+  if(!cache.kitchenStock.length){ toast('Ajoutez d\'abord des ingrédients au stock cuisine.', 'danger'); return; }
+  document.getElementById('po-id').value='';
+  document.getElementById('po-supplier').innerHTML = cache.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  poItemRows = [{itemId:'', qty:0, unitCost:0}];
+  renderPoRows();
+  openModal('modal-po');
+});
+
+document.getElementById('save-po-btn').addEventListener('click', async ()=>{
+  const validRows = poItemRows.filter(r=>r.itemId && r.qty>0);
+  if(!validRows.length){ toast('Ajoutez au moins un article valide.', 'danger'); return; }
+  const items = validRows.map(r=>{
+    const item = cache.kitchenStock.find(x=>x.id===r.itemId);
+    return { itemId:r.itemId, name:item.name, unit:item.unit, qty:r.qty, unitCost:r.unitCost };
+  });
+  const total = items.reduce((s,i)=>s+i.qty*i.unitCost,0);
+  const supplierId = document.getElementById('po-supplier').value;
+  try{
+    const orderNumber = 'BC-' + Date.now().toString().slice(-6);
+    await db.collection('purchaseOrders').add({
+      orderNumber, supplierId, items, totalAmount: total, status:'PENDING',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await logAudit('po.create', `${orderNumber} — ${fmtMoney(total)}`);
+    closeModal('modal-po');
+    toast('Bon de commande créé.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+function supplierName(id){ const s = cache.suppliers.find(x=>x.id===id); return s ? s.name : '—'; }
+
+const PO_STATUS_LABEL = {PENDING:'Demande créée',ORDERED:'Commandé',RECEIVED:'Réceptionné',CANCELLED:'Annulé'};
+const PO_STATUS_TAG = {PENDING:'pending',ORDERED:'reserved',RECEIVED:'confirmed',CANCELLED:'cancelled'};
+const PO_FLOW = {PENDING:'ORDERED', ORDERED:'RECEIVED'};
+const PO_ACTION_LABEL = {PENDING:'Marquer commandé', ORDERED:'Réceptionner (entrée en stock)'};
+
+function renderPurchaseOrders(){
+  const wrap = document.getElementById('po-list');
+  if(!cache.purchaseOrders.length){ wrap.innerHTML = '<div class="empty-state">Aucun bon de commande.</div>'; return; }
+  wrap.innerHTML = cache.purchaseOrders.map(po=>`
+    <div class="po-card">
+      <div class="phead">
+        <h4>${po.orderNumber} — ${supplierName(po.supplierId)}</h4>
+        <span class="tag tag-${PO_STATUS_TAG[po.status]}">${PO_STATUS_LABEL[po.status]||po.status}</span>
+      </div>
+      <table style="margin-bottom:8px;"><tbody>
+        ${(po.items||[]).map(i=>`<tr><td>${i.name}</td><td>${i.qty} ${i.unit}</td><td>${fmtMoney(i.unitCost)}/u.</td><td>${fmtMoney(i.qty*i.unitCost)}</td></tr>`).join('')}
+      </tbody></table>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>${fmtMoney(po.totalAmount)}</strong>
+        ${PO_FLOW[po.status] ? `<button class="btn btn-sm btn-dark" onclick="advancePo('${po.id}')">${PO_ACTION_LABEL[po.status]}</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+window.advancePo = async function(id){
+  const po = cache.purchaseOrders.find(x=>x.id===id);
+  if(!po) return;
+  const next = PO_FLOW[po.status];
+  if(!next) return;
+  try{
+    if(next==='RECEIVED'){
+      const batch = db.batch();
+      (po.items||[]).forEach(i=>{
+        const stockItem = cache.kitchenStock.find(x=>x.id===i.itemId);
+        if(stockItem){
+          batch.update(db.collection('kitchenStock').doc(stockItem.id), {
+            quantity: Number(stockItem.quantity||0) + Number(i.qty||0),
+            costPerUnit: i.unitCost // dernier coût d'achat connu
+          });
+        }
+      });
+      batch.update(db.collection('purchaseOrders').doc(id), {status:'RECEIVED', receivedAt: firebase.firestore.FieldValue.serverTimestamp()});
+      await batch.commit();
+      await logAudit('po.received', `${po.orderNumber} — stock mis à jour`);
+      toast('Réception enregistrée : stock cuisine mis à jour.');
+    }else{
+      await db.collection('purchaseOrders').doc(id).update({status: next});
+      await logAudit('po.update', `${po.orderNumber} → ${next}`);
+      toast('Bon de commande mis à jour.');
+    }
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+};
+</script>
+</body>
+</html>
