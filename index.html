@@ -122,6 +122,8 @@ a{color:inherit;}
 
 .btn{padding:9px 16px;border-radius:var(--radius);font-size:13px;font-weight:700;border:2px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;}
 .btn-dark{background:var(--ocean-deep);color:#fff;border-color:var(--ocean-deep);}
+.room-filter-btn.active{background:var(--ocean-deep);color:#fff;border-color:var(--ocean-deep);}
+.hk-filter-btn.active{background:var(--ocean-deep);color:#fff;border-color:var(--ocean-deep);}
 .btn-coral{background:var(--coral);color:#fff;border-color:var(--coral);}
 .btn-ghost{background:transparent;border-color:transparent;color:var(--ink-soft);}
 .btn-sm{padding:6px 11px;font-size:12px;}
@@ -176,7 +178,8 @@ tr:last-child td{border-bottom:none;}
 .order-item-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
 .order-item-line:last-child{border-bottom:none;}
 .po-row{display:grid;grid-template-columns:1fr 70px 90px 30px;gap:8px;margin-bottom:8px;align-items:center;}
-.inv-row{display:grid;grid-template-columns:1fr 50px 90px 30px;gap:8px;margin-bottom:8px;align-items:center;}
+.inv-row{display:grid;grid-template-columns:100px 1fr 50px 90px 30px;gap:6px;margin-bottom:8px;align-items:center;}
+.inv-row select{padding:8px 4px;border:1px solid var(--line);border-radius:var(--radius);font-size:12px;}
 .inv-row input{padding:8px 9px;border:1px solid var(--line);border-radius:var(--radius);font-size:13px;}
 .inv-row button{background:none;border:none;color:var(--danger);font-size:16px;}
 .invoice-card{border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff;}
@@ -272,10 +275,17 @@ tr:last-child td{border-bottom:none;}
         </section>
 
         <section class="section" id="section-rooms">
+          <div class="stat-grid" id="rooms-stats"></div>
+          <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;">
+            <button class="btn btn-sm room-filter-btn active" data-filter="ALL">Toutes</button>
+            <button class="btn btn-sm room-filter-btn" data-filter="AVAILABLE">Disponible</button>
+            <button class="btn btn-sm room-filter-btn" data-filter="OCCUPIED">Occupée</button>
+            <button class="btn btn-sm room-filter-btn" data-filter="MAINTENANCE">Maintenance</button>
+          </div>
           <div class="panel">
             <div class="panel-head">
               <h3>Unités d'hébergement</h3>
-              <div style="display:flex;gap:8px;">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn btn-sm" id="seed-rooms-btn">↓ Importer les 5 hébergements du Domaine</button>
                 <button class="btn btn-dark btn-sm" id="add-room-btn">+ Nouvelle unité</button>
               </div>
@@ -305,7 +315,7 @@ tr:last-child td{border-bottom:none;}
           <div class="panel">
             <div class="panel-head">
               <h3>Clients</h3>
-              <button class="btn btn-dark btn-sm" id="add-guest-btn">+ Nouveau client</button>
+              <span style="font-size:11px;color:var(--ink-soft);">Ajoutés automatiquement au check-in</span>
             </div>
             <div class="panel-body" style="overflow-x:auto;">
               <table>
@@ -329,6 +339,7 @@ tr:last-child td{border-bottom:none;}
           <div class="panel">
             <div class="panel-head">
               <h3>Commandes en cours</h3>
+              <button class="btn btn-dark btn-sm" id="new-order-btn">+ Nouvelle commande</button>
             </div>
             <div class="panel-body">
               <div id="orders-list" class="empty-state">Chargement…</div>
@@ -395,12 +406,6 @@ tr:last-child td{border-bottom:none;}
             </div>
           </div>
           <div class="panel">
-            <div class="panel-head"><h3>Écran bar — commandes en attente</h3></div>
-            <div class="panel-body">
-              <div id="kds-bar-list" class="room-grid"><div class="empty-state">Aucune commande en attente.</div></div>
-            </div>
-          </div>
-          <div class="panel">
             <div class="panel-head">
               <h3>Stock cuisine</h3>
               <button class="btn btn-dark btn-sm" id="add-stock-btn">+ Nouvel ingrédient</button>
@@ -419,6 +424,27 @@ tr:last-child td{border-bottom:none;}
             </div>
             <div class="panel-body">
               <div id="recipes-list" class="empty-state">Chargement…</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-bar">
+          <div class="panel">
+            <div class="panel-head"><h3>Écran bar — commandes en attente</h3></div>
+            <div class="panel-body">
+              <div id="kds-bar-list" class="room-grid"><div class="empty-state">Aucune commande en attente.</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Stock bar</h3>
+              <button class="btn btn-dark btn-sm" id="add-barstock-btn">+ Nouvel article</button>
+            </div>
+            <div class="panel-body" style="overflow-x:auto;">
+              <table>
+                <thead><tr><th>Article</th><th>Quantité</th><th>Seuil min.</th><th>Coût unitaire</th><th>Valeur stock</th><th></th></tr></thead>
+                <tbody id="barstock-tbody"><tr><td colspan="6" class="empty-state">Chargement…</td></tr></tbody>
+              </table>
             </div>
           </div>
         </section>
@@ -547,8 +573,17 @@ tr:last-child td{border-bottom:none;}
 
         <section class="section" id="section-housekeeping">
           <div class="panel">
-            <div class="panel-head"><h3>Housekeeping du jour</h3></div>
+            <div class="panel-head">
+              <h3>Ménage & Nettoyage</h3>
+              <span id="hk-summary" style="font-size:12px;color:var(--ink-soft);"></span>
+            </div>
             <div class="panel-body">
+              <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+                <button class="btn btn-sm hk-filter-btn active" data-filter="ALL">Toutes</button>
+                <button class="btn btn-sm hk-filter-btn" data-filter="A_NETTOYER">À nettoyer</button>
+                <button class="btn btn-sm hk-filter-btn" data-filter="EN_COURS">En cours</button>
+                <button class="btn btn-sm hk-filter-btn" data-filter="PROPRE">Propres</button>
+              </div>
               <div id="hk-list" class="room-grid"></div>
             </div>
           </div>
@@ -562,6 +597,7 @@ tr:last-child td{border-bottom:none;}
                 <h3 id="rap-month-label">Mois</h3>
                 <button class="btn btn-sm" id="rap-month-next-btn">▶</button>
               </div>
+              <button class="btn btn-coral btn-sm" id="rap-pdf-btn">📄 Télécharger PDF</button>
             </div>
             <div class="panel-body">
               <div id="rapports-body" class="empty-state">Chargement…</div>
@@ -658,8 +694,9 @@ tr:last-child td{border-bottom:none;}
   <div class="modal">
     <h3>Réservation</h3>
     <input type="hidden" id="resa-id">
-    <div class="field"><label>Client</label>
-      <select id="resa-guest"></select>
+    <div class="grid-2">
+      <div class="field"><label>Nom du client</label><input id="resa-guest-name" placeholder="Nom et prénom"></div>
+      <div class="field"><label>Téléphone</label><input id="resa-guest-phone" placeholder="+237 6XX XXX XXX"></div>
     </div>
     <div class="field"><label>Unité</label>
       <select id="resa-room"></select>
@@ -775,6 +812,18 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-hknote">
+  <div class="modal">
+    <h3 id="hknote-title">Note ménage</h3>
+    <input type="hidden" id="hknote-room-id">
+    <div class="field"><label>Note</label><textarea id="hknote-text" rows="3" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-hknote')">Annuler</button>
+      <button class="btn btn-dark" id="save-hknote-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-stock">
   <div class="modal">
     <h3>Ingrédient (stock cuisine)</h3>
@@ -793,6 +842,28 @@ tr:last-child td{border-bottom:none;}
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-stock')">Annuler</button>
       <button class="btn btn-dark" id="save-stock-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-barstock">
+  <div class="modal">
+    <h3>Article (stock bar)</h3>
+    <input type="hidden" id="barstock-id">
+    <div class="field"><label>Nom</label><input id="barstock-name" placeholder="Whisky, jus d'orange, Coca..."></div>
+    <div class="grid-2">
+      <div class="field"><label>Unité</label>
+        <select id="barstock-unit"><option value="bouteille">bouteille</option><option value="cl">cl</option><option value="l">l</option><option value="canette">canette</option><option value="pièce">pièce</option></select>
+      </div>
+      <div class="field"><label>Quantité actuelle</label><input type="number" id="barstock-qty" placeholder="0"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Seuil minimum</label><input type="number" id="barstock-min" placeholder="0"></div>
+      <div class="field"><label>Coût / unité (FCFA)</label><input type="number" id="barstock-cost" placeholder="0"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-barstock')">Annuler</button>
+      <button class="btn btn-dark" id="save-barstock-btn">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -870,6 +941,7 @@ tr:last-child td{border-bottom:none;}
   <div class="modal" style="max-width:560px;">
     <h3 id="order-modal-title">Commande</h3>
     <input type="hidden" id="order-table-id">
+    <div class="field" id="order-table-select-wrap"><label>Table</label><select id="order-table-select"></select></div>
     <div class="field">
       <label>Articles</label>
       <div id="order-items-rows"></div>
@@ -1103,8 +1175,8 @@ const db = firebase.firestore();
 db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
 const ROLES = {
-  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
-  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
+  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","bar","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
+  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","bar","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
   RECEPTION:          { label:"Réception",      nav:["dashboard","rooms","reservations","guests","cash","facturation"] },
   ACCOUNTANT:         { label:"Comptabilité",   nav:["dashboard","cash","reservations","purchasing","facturation","depenses","charges","salaires","rapports"] },
   HOUSEKEEPING:       { label:"Housekeeping",   nav:["housekeeping","maintenance"] },
@@ -1113,8 +1185,8 @@ const ROLES = {
   KITCHEN:            { label:"Cuisine",        nav:["kitchen","purchasing","stock"] },
   WAITER:             { label:"Serveur",        nav:["restaurant"] },
   RESTAURANT_MANAGER: { label:"Resp. Restaurant", nav:["dashboard","restaurant","kitchen","purchasing","planning","cash"] },
-  BAR_MANAGER:        { label:"Resp. Bar",      nav:["restaurant","cash"] },
-  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] }
+  BAR_MANAGER:        { label:"Resp. Bar",      nav:["restaurant","bar","cash"] },
+  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","bar","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] }
 };
 
 const NAV_ITEMS = [
@@ -1124,6 +1196,7 @@ const NAV_ITEMS = [
   {key:"guests",        label:"Clients",     icon:"👥"},
   {key:"restaurant",    label:"Restaurant",  icon:"🍽️"},
   {key:"kitchen",       label:"Cuisine",     icon:"🍳"},
+  {key:"bar",           label:"Bar",         icon:"🍹"},
   {key:"purchasing",    label:"Achats",      icon:"🛒"},
   {key:"stock",         label:"Stock",       icon:"📦"},
   {key:"employees",     label:"Personnel",   icon:"👤"},
@@ -1142,7 +1215,7 @@ const NAV_ITEMS = [
 
 let currentUser = null;
 let currentProfile = null;
-let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[], invoices:[] };
+let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[], invoices:[], barStock:[] };
 let invoiceLineRows = [];
 let unsubscribers = [];
 let planningUnsub = null;
@@ -1389,6 +1462,10 @@ function attachListeners(){
     cache.kitchenStock = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderKitchenStock(); renderRecipes(); renderDashboard();
   }, err=>console.warn('kitchenStock listener', err)));
+  unsubscribers.push(db.collection('barStock').orderBy('name').onSnapshot(snap=>{
+    cache.barStock = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderBarStock(); renderDashboard();
+  }, err=>console.warn('barStock listener', err)));
   unsubscribers.push(db.collection('recipes').orderBy('dishName').onSnapshot(snap=>{
     cache.recipes = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderRecipes();
@@ -1481,7 +1558,7 @@ function renderDashboard(){
   const listEl = document.getElementById('dash-today-list');
   if(!list.length){ listEl.innerHTML = '<div class="empty-state">Aucune arrivée ni départ aujourd\'hui.</div>'; return; }
   listEl.innerHTML = `<table><thead><tr><th>Type</th><th>Client</th><th>Unité</th><th>Statut</th></tr></thead><tbody>` +
-    list.map(r=>`<tr><td>${r.kind}</td><td>${guestName(r.guestId)}</td><td>${roomName(r.roomId)}</td><td><span class="tag tag-${(r.status||'').toLowerCase()}">${statusLabel(r.status)}</span></td></tr>`).join('') +
+    list.map(r=>`<tr><td>${r.kind}</td><td>${resaDisplayName(r)}</td><td>${roomName(r.roomId)}</td><td><span class="tag tag-${(r.status||'').toLowerCase()}">${statusLabel(r.status)}</span></td></tr>`).join('') +
     `</tbody></table>`;
 }
 
@@ -1491,29 +1568,77 @@ function activeResaForRoom(roomId){
   return cache.reservations.find(r=>r.roomId===roomId && r.status==='CHECKED_IN');
 }
 
+let roomFilter = 'ALL';
+document.querySelectorAll('.room-filter-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    roomFilter = b.dataset.filter;
+    document.querySelectorAll('.room-filter-btn').forEach(x=>x.classList.toggle('active', x===b));
+    renderRooms();
+  });
+});
+
 function renderRooms(){
   const grid = document.getElementById('rooms-grid');
-  if(!cache.rooms.length){ grid.innerHTML = '<div class="empty-state">Aucune unité enregistrée. Ajoutez la première.</div>'; return; }
-  grid.innerHTML = cache.rooms.map(r=>{
+  const total = cache.rooms.length;
+  const available = cache.rooms.filter(r=>r.status==='AVAILABLE').length;
+  const occupied = cache.rooms.filter(r=>r.status==='OCCUPIED').length;
+  document.getElementById('rooms-stats').innerHTML = `
+    <div class="stat-card stat-green"><div class="label">Disponibles</div><div class="value">${available}</div></div>
+    <div class="stat-card stat-red"><div class="label">Occupées</div><div class="value">${occupied}</div></div>
+    <div class="stat-card stat-purple"><div class="label">Total</div><div class="value">${total}</div></div>
+  `;
+
+  if(!total){ grid.innerHTML = '<div class="empty-state">Aucune unité enregistrée. Ajoutez la première.</div>'; return; }
+  const list = roomFilter==='ALL' ? cache.rooms : cache.rooms.filter(r=>r.status===roomFilter);
+  if(!list.length){ grid.innerHTML = '<div class="empty-state">Aucune unité dans ce filtre.</div>'; return; }
+
+  grid.innerHTML = list.map(r=>{
     const cardMod = r.status==='OCCUPIED' ? 'occ2' : (r.status==='MAINTENANCE' ? 'maint' : '');
-    let actionBtn = '';
-    if(r.status==='AVAILABLE' || r.status==='RESERVED'){
-      actionBtn = `<button class="btn btn-sm btn-dark" style="margin-top:8px;width:100%;" onclick="event.stopPropagation();openQuickCheckin('${r.id}')">+ Check-in</button>`;
-    }else if(r.status==='OCCUPIED'){
-      const resa = activeResaForRoom(r.id);
-      actionBtn = resa ? `<button class="btn btn-sm btn-coral" style="margin-top:8px;width:100%;" onclick="event.stopPropagation();checkOut('${resa.id}')">Check-out</button>` : '';
-    }
+    const resa = r.status==='OCCUPIED' ? activeResaForRoom(r.id) : null;
+    const primaryBtn = r.status==='OCCUPIED'
+      ? (resa ? `<button class="btn btn-sm btn-coral" onclick="event.stopPropagation();checkOut('${resa.id}')">Check-out</button>` : '')
+      : `<button class="btn btn-sm btn-dark" onclick="event.stopPropagation();openQuickCheckin('${r.id}')">+ Check-in</button>`;
+    const maintBtn = r.status==='MAINTENANCE'
+      ? `<button class="btn btn-sm" style="border-color:var(--warn);color:var(--warn);" onclick="event.stopPropagation();clearMaintenance('${r.id}')">Fin maintenance</button>`
+      : `<button class="btn btn-sm" style="border-color:var(--warn);color:var(--warn);" onclick="event.stopPropagation();quickSetMaintenance('${r.id}')">Maint.</button>`;
     return `
     <div class="room-card ${cardMod}" data-id="${r.id}">
       <div class="rname">${r.name}</div>
       <div class="rtype">${r.description || ''}</div>
       <div class="rtype" style="font-weight:700;color:var(--ink);">${r.price ? fmtMoney(r.price)+'/nuit' : 'tarif à définir'}</div>
       <span class="tag tag-${(r.status||'').toLowerCase()}">${ROOM_STATUS_LABEL[r.status]||r.status}</span>
-      ${actionBtn}
+      ${resa ? `
+        <div style="margin-top:8px;font-size:12.5px;">
+          <div style="font-weight:700;">${resaDisplayName(resa)}</div>
+          ${resa.guestPhone ? `<div style="color:var(--ink-soft);">${resa.guestPhone}</div>` : ''}
+          <div style="color:var(--ink-soft);">Départ : ${new Date(resa.checkOut).toLocaleDateString('fr-FR')}</div>
+        </div>` : ''}
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        ${primaryBtn}
+        ${maintBtn}
+      </div>
+      ${resa ? `<button class="btn btn-sm btn-dark" style="width:100%;margin-top:6px;" onclick="event.stopPropagation();invoicePrepFromRoom('${r.id}')">📄 Facture</button>` : ''}
     </div>
   `;}).join('');
   grid.querySelectorAll('.room-card').forEach(c=>c.addEventListener('click', ()=>editRoom(c.dataset.id)));
 }
+
+window.quickSetMaintenance = async function(roomId){
+  await db.collection('rooms').doc(roomId).update({status:'MAINTENANCE'});
+  await logAudit('room.maintenance', roomName(roomId));
+  toast('Unité passée en maintenance.');
+};
+window.clearMaintenance = async function(roomId){
+  await db.collection('rooms').doc(roomId).update({status:'AVAILABLE'});
+  await logAudit('room.maintenance.clear', roomName(roomId));
+  toast('Unité de nouveau disponible.');
+};
+window.invoicePrepFromRoom = function(roomId){
+  const resa = activeResaForRoom(roomId);
+  if(!resa){ toast('Aucun séjour en cours sur cette unité.', 'danger'); return; }
+  showSection('facturation');
+  invoiceFromReservation(resa.id);
+};
 
 function roomName(id){ const r = cache.rooms.find(x=>x.id===id); return r ? r.name : '—'; }
 
@@ -1609,26 +1734,21 @@ function guestName(id){
   const g = cache.guests.find(x=>x.id===id);
   return g ? `${g.firstName||''} ${g.lastName||''}`.trim() : '—';
 }
-
-function renderGuestOptions(){
-  const sel = document.getElementById('resa-guest');
-  if(!sel) return;
-  sel.innerHTML = cache.guests.map(g=>`<option value="${g.id}">${g.firstName||''} ${g.lastName||''}</option>`).join('') || '<option value="">Aucun client — créez-en un d\'abord</option>';
-}
+function resaDisplayName(r){ return r.guestName || guestName(r.guestId); }
 
 function renderReservations(){
   const tbody = document.getElementById('resa-tbody');
   if(!cache.reservations.length){ tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucune réservation.</td></tr>'; return; }
   tbody.innerHTML = cache.reservations.map(r=>`
     <tr>
-      <td>${guestName(r.guestId)}</td>
+      <td>${resaDisplayName(r)}</td>
       <td>${roomName(r.roomId)}</td>
       <td>${r.checkIn||''}</td>
       <td>${r.checkOut||''}</td>
       <td><span class="tag tag-${(r.status||'').toLowerCase()}">${statusLabel(r.status)}</span></td>
       <td>${fmtMoney(r.rate)}/nuit</td>
       <td style="white-space:nowrap;">
-        ${r.status==='CONFIRMED' ? `<button class="btn btn-sm btn-dark" onclick="checkIn('${r.id}')">Check-in</button>` : ''}
+        ${r.status==='CONFIRMED'||r.status==='PENDING' ? `<button class="btn btn-sm btn-dark" onclick="checkIn('${r.id}')">Check-in</button>` : ''}
         ${r.status==='CHECKED_IN' ? `<button class="btn btn-sm btn-coral" onclick="checkOut('${r.id}')">Check-out</button>` : ''}
         ${r.status==='CHECKED_OUT' ? `<button class="btn btn-sm btn-dark" onclick="invoiceFromReservation('${r.id}')">Facturer</button>` : ''}
         <button class="btn btn-sm btn-ghost" onclick="editResa('${r.id}')">✎</button>
@@ -1638,9 +1758,10 @@ function renderReservations(){
 }
 
 document.getElementById('add-resa-btn').addEventListener('click', ()=>{
-  if(!cache.guests.length){ toast('Créez d\'abord un client.', 'danger'); return; }
   if(!cache.rooms.length){ toast('Créez d\'abord une unité.', 'danger'); return; }
   document.getElementById('resa-id').value='';
+  document.getElementById('resa-guest-name').value='';
+  document.getElementById('resa-guest-phone').value='';
   document.getElementById('resa-checkin').value = todayStr();
   document.getElementById('resa-checkout').value = todayStr();
   document.getElementById('resa-guests-count').value = 2;
@@ -1649,16 +1770,17 @@ document.getElementById('add-resa-btn').addEventListener('click', ()=>{
   document.getElementById('resa-status').value='PENDING';
   document.getElementById('resa-notes').value='';
   document.getElementById('resa-conflict-warning').style.display='none';
-  renderGuestOptions(); renderRoomOptions();
+  renderRoomOptions();
   openModal('modal-resa');
 });
 
 function editResa(id){
   const r = cache.reservations.find(x=>x.id===id);
   if(!r) return;
-  renderGuestOptions(); renderRoomOptions();
+  renderRoomOptions();
   document.getElementById('resa-id').value = r.id;
-  document.getElementById('resa-guest').value = r.guestId;
+  document.getElementById('resa-guest-name').value = resaDisplayName(r);
+  document.getElementById('resa-guest-phone').value = r.guestPhone || (cache.guests.find(g=>g.id===r.guestId)||{}).phone || '';
   document.getElementById('resa-room').value = r.roomId;
   document.getElementById('resa-checkin').value = r.checkIn;
   document.getElementById('resa-checkout').value = r.checkOut;
@@ -1685,13 +1807,16 @@ document.getElementById('save-resa-btn').addEventListener('click', async ()=>{
   const roomId = document.getElementById('resa-room').value;
   const checkIn = document.getElementById('resa-checkin').value;
   const checkOut = document.getElementById('resa-checkout').value;
+  const guestNameVal = document.getElementById('resa-guest-name').value.trim();
+  if(!guestNameVal){ toast('Le nom du client est requis.', 'danger'); return; }
   if(checkOut <= checkIn){ toast('La date de départ doit être après l\'arrivée.', 'danger'); return; }
   if(hasConflict(roomId, checkIn, checkOut, id)){
     document.getElementById('resa-conflict-warning').style.display='block';
     return;
   }
   const data = {
-    guestId: document.getElementById('resa-guest').value,
+    guestName: guestNameVal,
+    guestPhone: document.getElementById('resa-guest-phone').value.trim(),
     roomId, checkIn, checkOut,
     guestsCount: Number(document.getElementById('resa-guests-count').value)||1,
     rate: Number(document.getElementById('resa-rate').value)||0,
@@ -1714,14 +1839,35 @@ document.getElementById('save-resa-btn').addEventListener('click', async ()=>{
   }catch(e){ toast('Erreur : '+e.message, 'danger'); }
 });
 
+// Retrouve un client existant par téléphone (prioritaire) ou nom exact, sinon le crée.
+// C'est le SEUL endroit où un nouveau client est ajouté à la base — toujours au moment du check-in.
+async function findOrCreateGuest(fullName, phone){
+  const norm = s => (s||'').trim().toLowerCase();
+  let existing = null;
+  if(phone) existing = cache.guests.find(g=>g.phone && norm(g.phone)===norm(phone));
+  if(!existing) existing = cache.guests.find(g=>norm(`${g.firstName||''} ${g.lastName||''}`)===norm(fullName));
+  if(existing) return existing.id;
+  const parts = fullName.trim().split(' ');
+  const ref = await db.collection('guests').add({
+    firstName: parts.slice(0,-1).join(' ') || fullName,
+    lastName: parts.length>1 ? parts.slice(-1)[0] : '',
+    phone: phone||'',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  return ref.id;
+}
+
 window.checkIn = async function(resaId){
   const r = cache.reservations.find(x=>x.id===resaId);
   if(!r) return;
   if(hasConflict(r.roomId, r.checkIn, r.checkOut, r.id)){ toast('Conflit détecté sur cette unité.', 'danger'); return; }
-  await db.collection('reservations').doc(resaId).update({status:'CHECKED_IN', actualCheckIn: firebase.firestore.FieldValue.serverTimestamp()});
-  await db.collection('rooms').doc(r.roomId).update({status:'OCCUPIED'});
-  await logAudit('reservation.checkin', `${guestName(r.guestId)} → ${roomName(r.roomId)}`);
-  toast('Check-in effectué.');
+  try{
+    const guestId = await findOrCreateGuest(resaDisplayName(r), r.guestPhone);
+    await db.collection('reservations').doc(resaId).update({status:'CHECKED_IN', guestId, actualCheckIn: firebase.firestore.FieldValue.serverTimestamp()});
+    await db.collection('rooms').doc(r.roomId).update({status:'OCCUPIED'});
+    await logAudit('reservation.checkin', `${resaDisplayName(r)} → ${roomName(r.roomId)}`);
+    toast('Check-in effectué.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
 };
 
 // --- CHECK-IN RAPIDE DEPUIS LA CARTE D'HÉBERGEMENT ---------------------------------
@@ -1743,21 +1889,16 @@ window.openQuickCheckin = function(roomId){
 document.getElementById('save-quickcheckin-btn').addEventListener('click', async ()=>{
   const roomId = document.getElementById('qc-room-id').value;
   const name = document.getElementById('qc-guest-name').value.trim();
+  const phone = document.getElementById('qc-guest-phone').value.trim();
   const checkIn = document.getElementById('qc-checkin').value;
   const checkOut = document.getElementById('qc-checkout').value;
   if(!name){ toast('Le nom du client est requis.', 'danger'); return; }
   if(checkOut <= checkIn){ toast('La date de départ doit être après l\'arrivée.', 'danger'); return; }
   if(hasConflict(roomId, checkIn, checkOut, null)){ toast('Cette unité est déjà occupée sur cette période.', 'danger'); return; }
   try{
-    const parts = name.split(' ');
-    const guestRef = await db.collection('guests').add({
-      firstName: parts.slice(0,-1).join(' ') || name,
-      lastName: parts.length>1 ? parts.slice(-1)[0] : '',
-      phone: document.getElementById('qc-guest-phone').value.trim(),
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    const guestId = await findOrCreateGuest(name, phone);
     await db.collection('reservations').add({
-      guestId: guestRef.id, roomId, checkIn, checkOut,
+      guestId, guestName: name, guestPhone: phone, roomId, checkIn, checkOut,
       guestsCount: Number(document.getElementById('qc-guests-count').value)||1,
       rate: Number(document.getElementById('qc-rate').value)||0,
       source: document.getElementById('qc-source').value,
@@ -1782,12 +1923,12 @@ window.checkOut = async function(resaId){
     if(total>0){
       await db.collection('cashTransactions').add({
         type:'IN', amount: total, mode:'Espèces', register:'reception',
-        note:`Séjour ${guestName(r.guestId)} — ${roomName(r.roomId)} (${nights} nuit${nights>1?'s':''}) — vérifier le mode de paiement réel dans Caisse`,
+        note:`Séjour ${resaDisplayName(r)} — ${roomName(r.roomId)} (${nights} nuit${nights>1?'s':''}) — vérifier le mode de paiement réel dans Caisse`,
         reservationId: resaId,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
-    await logAudit('reservation.checkout', `${guestName(r.guestId)} → ${roomName(r.roomId)} — ${fmtMoney(total)} encaissés`);
+    await logAudit('reservation.checkout', `${resaDisplayName(r)} → ${roomName(r.roomId)} — ${fmtMoney(total)} encaissés`);
     toast(`Check-out effectué. ${fmtMoney(total)} ajoutés en caisse. Unité passée en nettoyage.`);
   }catch(e){ toast('Erreur : '+e.message, 'danger'); }
 };
@@ -1811,12 +1952,6 @@ function renderGuests(){
     </tr>`;
   }).join('');
 }
-
-document.getElementById('add-guest-btn').addEventListener('click', ()=>{
-  ['guest-id','guest-lastname','guest-firstname','guest-phone','guest-email','guest-company','guest-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('guest-tag').value='';
-  openModal('modal-guest');
-});
 
 window.editGuest = function(id){
   const g = cache.guests.find(x=>x.id===id);
@@ -1866,9 +2001,18 @@ function renderEmployees(){
     <tr>
       <td>${e.name}</td><td>${e.role}</td><td>${e.phone||'—'}</td>
       <td><span class="tag tag-${e.status==='ACTIVE'?'confirmed':(e.status==='LEAVE'?'pending':'cancelled')}">${e.status==='ACTIVE'?'Actif':e.status==='LEAVE'?'En congé':'Inactif'}</span></td>
-      <td><button class="btn btn-sm btn-ghost" onclick="editEmployee('${e.id}')">✎</button></td>
+      <td><button class="btn btn-sm btn-ghost" onclick="editEmployee('${e.id}')">✎</button> <button class="btn btn-sm btn-danger" onclick="deleteEmployee('${e.id}','${e.name.replace(/'/g,"\\'")}')">Suppr.</button></td>
     </tr>`).join('');
 }
+
+window.deleteEmployee = async function(id, name){
+  if(!confirm(`Supprimer définitivement "${name}" du personnel ?`)) return;
+  try{
+    await db.collection('employees').doc(id).delete();
+    await logAudit('employee.delete', name);
+    toast('Employé supprimé.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+};
 
 document.getElementById('add-employee-btn').addEventListener('click', ()=>{
   ['emp-id','emp-name','emp-phone','emp-start','emp-salary'].forEach(id=>document.getElementById(id).value='');
@@ -2005,22 +2149,77 @@ window.advanceTicket = async function(id){
   toast('Ticket mis à jour.');
 };
 
+let hkFilter = 'ALL';
+document.querySelectorAll('.hk-filter-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    hkFilter = b.dataset.filter;
+    document.querySelectorAll('.hk-filter-btn').forEach(x=>x.classList.toggle('active', x===b));
+    renderHousekeeping();
+  });
+});
+
+function hkStateOf(r){
+  if(r.status==='MAINTENANCE') return 'HORS_SERVICE';
+  if(r.hkInProgress) return 'EN_COURS';
+  if(r.status==='CLEANING') return 'A_NETTOYER';
+  return 'PROPRE';
+}
+const HK_STATE_LABEL = {A_NETTOYER:'À nettoyer', EN_COURS:'En cours', PROPRE:'Propre', HORS_SERVICE:'Hors service'};
+const HK_STATE_TAG   = {A_NETTOYER:'occupied', EN_COURS:'pending', PROPRE:'confirmed', HORS_SERVICE:'blocked'};
+
 function renderHousekeeping(){
   const el = document.getElementById('hk-list');
-  const toClean = cache.rooms.filter(r=>r.status==='CLEANING');
-  if(!toClean.length){ el.innerHTML = '<div class="empty-state">Aucune unité à nettoyer pour le moment.</div>'; return; }
-  el.innerHTML = toClean.map(r=>`
-    <div class="room-card">
+  const withState = cache.rooms.map(r=>({r, state: hkStateOf(r)}));
+  const counts = {A_NETTOYER:0, EN_COURS:0, PROPRE:0, HORS_SERVICE:0};
+  withState.forEach(x=>counts[x.state]++);
+  document.getElementById('hk-summary').textContent =
+    `${counts.A_NETTOYER} à nettoyer · ${counts.EN_COURS} en cours · ${counts.PROPRE} propres`;
+
+  const list = hkFilter==='ALL' ? withState : withState.filter(x=>x.state===hkFilter);
+  if(!list.length){ el.innerHTML = '<div class="empty-state">Aucune unité dans ce filtre.</div>'; return; }
+
+  el.innerHTML = list.map(({r,state})=>{
+    const cardMod = state==='A_NETTOYER' ? 'occ2' : (state==='HORS_SERVICE' ? 'maint' : '');
+    let actionBtn = '';
+    if(state==='A_NETTOYER') actionBtn = `<button class="btn btn-sm" style="background:var(--warn-pale);color:var(--warn);border-color:var(--warn-pale);width:100%;" onclick="startCleaning('${r.id}')">Commencer</button>`;
+    else if(state==='EN_COURS') actionBtn = `<button class="btn btn-sm btn-dark" style="width:100%;" onclick="markClean('${r.id}')">Marquer propre</button>`;
+    return `<div class="room-card ${cardMod}">
       <div class="rname">${r.name}</div>
-      <div class="rtype">${r.type||''}</div>
-      <button class="btn btn-sm btn-dark" style="margin-top:8px;" onclick="markClean('${r.id}')">Marquer prête</button>
-    </div>`).join('');
+      <span class="tag tag-${HK_STATE_TAG[state]}">${HK_STATE_LABEL[state]}</span>
+      ${state==='EN_COURS' && r.hkAssignee ? `<div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">Par : ${r.hkAssignee}${r.hkStartedAt ? ' à '+fmtDate(r.hkStartedAt) : ''}</div>` : ''}
+      ${r.hkNote ? `<div style="font-size:11px;color:var(--coral);margin-top:6px;font-style:italic;">${r.hkNote}</div>` : ''}
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        ${actionBtn}
+        <button class="btn btn-sm btn-ghost" onclick="openHkNote('${r.id}')">Note</button>
+      </div>
+    </div>`;
+  }).join('');
 }
-window.markClean = async function(id){
-  await db.collection('rooms').doc(id).update({status:'AVAILABLE'});
-  await logAudit('housekeeping.done', roomName(id));
-  toast('Unité marquée disponible.');
+
+window.startCleaning = async function(id){
+  await db.collection('rooms').doc(id).update({hkInProgress:true, hkAssignee: currentProfile.name, hkStartedAt: firebase.firestore.FieldValue.serverTimestamp()});
+  await logAudit('housekeeping.start', roomName(id));
+  toast('Nettoyage commencé.');
 };
+window.markClean = async function(id){
+  await db.collection('rooms').doc(id).update({status:'AVAILABLE', hkInProgress:false, hkAssignee: firebase.firestore.FieldValue.delete(), hkStartedAt: firebase.firestore.FieldValue.delete()});
+  await logAudit('housekeeping.done', roomName(id));
+  toast('Unité marquée propre et disponible.');
+};
+window.openHkNote = function(id){
+  const r = cache.rooms.find(x=>x.id===id);
+  document.getElementById('hknote-title').textContent = `Note — ${r ? r.name : ''}`;
+  document.getElementById('hknote-room-id').value = id;
+  document.getElementById('hknote-text').value = r ? (r.hkNote||'') : '';
+  openModal('modal-hknote');
+};
+document.getElementById('save-hknote-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('hknote-room-id').value;
+  const text = document.getElementById('hknote-text').value.trim();
+  await db.collection('rooms').doc(id).update({hkNote: text});
+  closeModal('modal-hknote');
+  toast('Note enregistrée.');
+});
 
 function renderAudit(){
   const tbody = document.getElementById('audit-tbody');
@@ -2271,6 +2470,7 @@ window.paySalary = async function(employeeId, key){
 
 // --- RAPPORTS ----------------------------------------------------------------------------
 let rapportMonth = new Date();
+let lastRapportData = null;
 document.getElementById('rap-month-prev-btn').addEventListener('click', ()=>{ rapportMonth.setMonth(rapportMonth.getMonth()-1); renderRapports(); });
 document.getElementById('rap-month-next-btn').addEventListener('click', ()=>{ rapportMonth.setMonth(rapportMonth.getMonth()+1); renderRapports(); });
 
@@ -2326,6 +2526,9 @@ async function renderRapports(){
   // --- SALAIRES ---
   const key = monthKey(rapportMonth);
   const paidPayroll = cache.payroll.filter(p=>p.month===key && p.status==='paye').reduce((s,p)=>s+(p.amount||0),0);
+
+  lastRapportData = { totalIn, totalOut, byRegister, expByCat, resasOut, nights, caHebergement, occMonthRate,
+    ticketsThisMonth, openTickets, lowKitchenItems, lowGeneralItems, paidPayroll };
 
   body.innerHTML = `
     <div class="stat-grid">
@@ -2659,6 +2862,60 @@ document.getElementById('save-stock-btn').addEventListener('click', async ()=>{
   }catch(e){ toast('Erreur : '+e.message, 'danger'); }
 });
 
+// --- BAR : STOCK (séparé de la cuisine) ---------------------------------------------
+function renderBarStock(){
+  const tbody = document.getElementById('barstock-tbody');
+  if(!cache.barStock.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun article enregistré.</td></tr>'; return; }
+  tbody.innerHTML = cache.barStock.map(i=>{
+    const low = Number(i.quantity) <= Number(i.minStock);
+    return `<tr>
+      <td>${i.name}</td>
+      <td style="${low?'color:var(--danger);font-weight:600;':''}">${i.quantity} ${i.unit}${low?' ⚠':''}</td>
+      <td>${i.minStock} ${i.unit}</td>
+      <td>${fmtMoney(i.costPerUnit)}</td>
+      <td>${fmtMoney((i.quantity||0)*(i.costPerUnit||0))}</td>
+      <td><button class="btn btn-sm btn-ghost" onclick="editBarStock('${i.id}')">✎</button></td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('add-barstock-btn').addEventListener('click', ()=>{
+  ['barstock-id','barstock-name','barstock-qty','barstock-min','barstock-cost'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('barstock-unit').value='bouteille';
+  openModal('modal-barstock');
+});
+
+window.editBarStock = function(id){
+  const i = cache.barStock.find(x=>x.id===id);
+  if(!i) return;
+  document.getElementById('barstock-id').value=i.id;
+  document.getElementById('barstock-name').value=i.name||'';
+  document.getElementById('barstock-unit').value=i.unit||'bouteille';
+  document.getElementById('barstock-qty').value=i.quantity||0;
+  document.getElementById('barstock-min').value=i.minStock||0;
+  document.getElementById('barstock-cost').value=i.costPerUnit||0;
+  openModal('modal-barstock');
+};
+
+document.getElementById('save-barstock-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('barstock-id').value;
+  const data = {
+    name: document.getElementById('barstock-name').value.trim(),
+    unit: document.getElementById('barstock-unit').value,
+    quantity: Number(document.getElementById('barstock-qty').value)||0,
+    minStock: Number(document.getElementById('barstock-min').value)||0,
+    costPerUnit: Number(document.getElementById('barstock-cost').value)||0,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(!data.name){ toast('Le nom est requis.', 'danger'); return; }
+  try{
+    if(id){ await db.collection('barStock').doc(id).update(data); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('barStock').add(data); }
+    closeModal('modal-barstock');
+    toast('Article enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
 // --- CUISINE : FICHES TECHNIQUES -------------------------------------------------
 function ingredientCost(row){
   const item = cache.kitchenStock.find(x=>x.id===row.itemId);
@@ -2919,13 +3176,27 @@ function updateOrderPreview(){
 
 function openOrderModal(tableId){
   if(!cache.menuItems.length){ toast('Ajoutez d\'abord des articles à la carte.', 'danger'); return; }
-  activeOrderTableId = tableId;
-  const table = cache.tables.find(t=>t.id===tableId);
-  document.getElementById('order-modal-title').textContent = `Commande — ${table ? table.name : ''}`;
+  if(!cache.tables.length){ toast('Créez d\'abord une table.', 'danger'); return; }
+  const wrap = document.getElementById('order-table-select-wrap');
+  const sel = document.getElementById('order-table-select');
+  if(tableId){
+    activeOrderTableId = tableId;
+    const table = cache.tables.find(t=>t.id===tableId);
+    document.getElementById('order-modal-title').textContent = `Commande — ${table ? table.name : ''}`;
+    wrap.style.display = 'none';
+  }else{
+    document.getElementById('order-modal-title').textContent = 'Nouvelle commande';
+    sel.innerHTML = cache.tables.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+    activeOrderTableId = sel.value;
+    sel.onchange = ()=>{ activeOrderTableId = sel.value; };
+    wrap.style.display = 'block';
+  }
   orderItemRows = [{menuItemId:'', qty:1}];
   renderOrderRows();
   openModal('modal-order');
 }
+
+document.getElementById('new-order-btn').addEventListener('click', ()=> openOrderModal(null));
 
 document.getElementById('save-order-btn').addEventListener('click', async ()=>{
   const validRows = orderItemRows.filter(r=>r.menuItemId && r.qty>0);
@@ -3117,10 +3388,10 @@ function updatePoPreview(){
 }
 
 document.getElementById('add-po-btn').addEventListener('click', ()=>{
-  if(!cache.suppliers.length){ toast('Créez d\'abord un fournisseur.', 'danger'); return; }
   if(!cache.kitchenStock.length){ toast('Ajoutez d\'abord des ingrédients au stock cuisine.', 'danger'); return; }
   document.getElementById('po-id').value='';
-  document.getElementById('po-supplier').innerHTML = cache.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('po-supplier').innerHTML = '<option value="">— Sans fournisseur —</option>' +
+    cache.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   poItemRows = [{itemId:'', qty:0, unitCost:0}];
   renderPoRows();
   openModal('modal-po');
@@ -3207,6 +3478,13 @@ function renderInvoiceLineRows(){
   const wrap = document.getElementById('invoice-lines-rows');
   wrap.innerHTML = invoiceLineRows.map((row,idx)=>`
     <div class="inv-row" data-idx="${idx}">
+      <select onchange="updateInvRow(${idx},'category',this.value)">
+        <option value="Hébergement" ${row.category==='Hébergement'?'selected':''}>Hébergt.</option>
+        <option value="Restaurant" ${row.category==='Restaurant'?'selected':''}>Restaurant</option>
+        <option value="Bar" ${row.category==='Bar'?'selected':''}>Bar</option>
+        <option value="Piscine" ${row.category==='Piscine'?'selected':''}>Piscine</option>
+        <option value="Autre" ${(!row.category||row.category==='Autre')?'selected':''}>Autre</option>
+      </select>
       <input placeholder="Description" value="${row.description||''}" onchange="updateInvRow(${idx},'description',this.value)">
       <input type="number" placeholder="Qté" value="${row.qty||1}" onchange="updateInvRow(${idx},'qty',this.value)">
       <input type="number" placeholder="P.U." value="${row.unitPrice||''}" onchange="updateInvRow(${idx},'unitPrice',this.value)">
@@ -3216,13 +3494,13 @@ function renderInvoiceLineRows(){
   updateInvoicePreview();
 }
 window.updateInvRow = function(idx, field, value){
-  invoiceLineRows[idx][field] = field==='description' ? value : Number(value);
+  invoiceLineRows[idx][field] = (field==='description'||field==='category') ? value : Number(value);
   updateInvoicePreview();
 };
 window.removeInvRow = function(idx){ invoiceLineRows.splice(idx,1); renderInvoiceLineRows(); };
 
 document.getElementById('add-invoice-line-btn').addEventListener('click', ()=>{
-  invoiceLineRows.push({description:'', qty:1, unitPrice:0});
+  invoiceLineRows.push({category:'Autre', description:'', qty:1, unitPrice:0});
   renderInvoiceLineRows();
 });
 
@@ -3245,7 +3523,7 @@ document.getElementById('add-invoice-btn').addEventListener('click', ()=>{
   document.getElementById('inv-client-phone').value='';
   document.getElementById('inv-ir').value='0';
   document.getElementById('inv-payment').value='Espèces';
-  invoiceLineRows = [{description:'', qty:1, unitPrice:0}];
+  invoiceLineRows = [{category:'Autre', description:'', qty:1, unitPrice:0}];
   renderInvoiceLineRows();
   openModal('modal-invoice');
 });
@@ -3255,12 +3533,11 @@ window.invoiceFromReservation = function(resaId){
   const r = cache.reservations.find(x=>x.id===resaId);
   if(!r) return;
   const nights = Math.max(1, Math.round((new Date(r.checkOut)-new Date(r.checkIn))/86400000));
-  document.getElementById('inv-client-name').value = guestName(r.guestId);
-  const g = cache.guests.find(x=>x.id===r.guestId);
-  document.getElementById('inv-client-phone').value = g ? (g.phone||'') : '';
+  document.getElementById('inv-client-name').value = resaDisplayName(r);
+  document.getElementById('inv-client-phone').value = r.guestPhone || (cache.guests.find(x=>x.id===r.guestId)||{}).phone || '';
   document.getElementById('inv-ir').value='0';
   document.getElementById('inv-payment').value='Espèces';
-  invoiceLineRows = [{description:`Séjour ${roomName(r.roomId)} — ${nights} nuit${nights>1?'s':''}`, qty:nights, unitPrice:r.rate||0}];
+  invoiceLineRows = [{category:'Hébergement', description:`Séjour ${roomName(r.roomId)} — ${nights} nuit${nights>1?'s':''}`, qty:nights, unitPrice:r.rate||0}];
   renderInvoiceLineRows();
   openModal('modal-invoice');
 };
@@ -3363,7 +3640,8 @@ window.downloadInvoicePdf = function(id){
     doc.setFont(undefined,'normal');
     y += 9;
     (inv.items||[]).forEach(it=>{
-      doc.text(String(it.description), 14, y);
+      const desc = it.category ? `[${it.category}] ${it.description}` : String(it.description);
+      doc.text(desc, 14, y);
       doc.text(String(it.qty), 120, y);
       doc.text(it.unitPrice.toLocaleString('fr-FR'), 145, y);
       doc.text((it.qty*it.unitPrice).toLocaleString('fr-FR'), 175, y);
@@ -3381,6 +3659,48 @@ window.downloadInvoicePdf = function(id){
     doc.save(`${inv.invoiceNumber}.pdf`);
   }catch(e){ toast('Erreur lors de la génération du PDF : '+e.message, 'danger'); }
 };
+
+document.getElementById('rap-pdf-btn').addEventListener('click', ()=>{
+  if(!lastRapportData || !window.jspdf){ toast('Rapport pas encore calculé, réessayez.', 'danger'); return; }
+  const d = lastRapportData;
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFillColor(13,53,52); doc.rect(0,0,210,28,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(16); doc.setFont(undefined,'bold');
+    doc.text('DOMAINE MONT-REPOS', 14, 14);
+    doc.setFontSize(9); doc.setFont(undefined,'normal');
+    doc.text('Rapport mensuel — Kribi, Cameroun', 14, 21);
+    doc.setTextColor(0,0,0);
+    doc.setFontSize(13); doc.setFont(undefined,'bold');
+    doc.text(`Rapport — ${monthLabel(rapportMonth)}`, 14, 40);
+    doc.setFontSize(10); doc.setFont(undefined,'normal');
+    let y = 52;
+    const line = (label, val)=>{ doc.text(label, 14, y); doc.text(val, 150, y); y += 7; };
+    doc.setFont(undefined,'bold'); doc.text('FINANCES', 14, y); y+=7; doc.setFont(undefined,'normal');
+    line('Total encaissé', fmtMoney(d.totalIn));
+    line('Total dépensé', fmtMoney(d.totalOut));
+    line('Résultat net', fmtMoney(d.totalIn-d.totalOut));
+    y+=3; doc.setFont(undefined,'bold'); doc.text('CAISSE PAR REGISTRE', 14, y); y+=7; doc.setFont(undefined,'normal');
+    Object.entries(d.byRegister).forEach(([reg,v])=>{ line(reg, `${fmtMoney(v.in)} / -${fmtMoney(v.out)}`); });
+    y+=3; doc.setFont(undefined,'bold'); doc.text('HÉBERGEMENT', 14, y); y+=7; doc.setFont(undefined,'normal');
+    line('Séjours terminés', String(d.resasOut.length));
+    line('Nuits vendues', String(d.nights));
+    line('CA hébergement', fmtMoney(d.caHebergement));
+    line("Taux d'occupation du mois", d.occMonthRate+'%');
+    y+=3; doc.setFont(undefined,'bold'); doc.text('DÉPENSES PAR CATÉGORIE', 14, y); y+=7; doc.setFont(undefined,'normal');
+    if(Object.keys(d.expByCat).length) Object.entries(d.expByCat).forEach(([cat,amt])=>{ line(cat, fmtMoney(amt)); });
+    else { doc.text('Aucune dépense ce mois.', 14, y); y+=7; }
+    y+=3; doc.setFont(undefined,'bold'); doc.text('SALAIRES & MAINTENANCE & STOCK', 14, y); y+=7; doc.setFont(undefined,'normal');
+    line('Salaires payés ce mois', fmtMoney(d.paidPayroll));
+    line('Tickets maintenance créés ce mois', String(d.ticketsThisMonth.length));
+    line('Tickets actuellement ouverts', String(d.openTickets));
+    line('Alertes stock cuisine', String(d.lowKitchenItems.length));
+    line('Alertes stock général', String(d.lowGeneralItems.length));
+
+    doc.save(`Rapport-${monthKey(rapportMonth)}.pdf`);
+  }catch(e){ toast('Erreur PDF : '+e.message, 'danger'); }
+});
 </script>
 </body>
 </html>
