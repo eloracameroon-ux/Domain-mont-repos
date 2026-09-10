@@ -591,18 +591,20 @@ tr:last-child td{border-bottom:none;}
 
         <section class="section" id="section-rapports">
           <div class="panel">
-            <div class="panel-head" style="flex-wrap:wrap;gap:10px;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <button class="btn btn-sm" id="rap-month-prev-btn">◀</button>
-                <h3 id="rap-month-label">Mois</h3>
-                <button class="btn btn-sm" id="rap-month-next-btn">▶</button>
-              </div>
-              <button class="btn btn-coral btn-sm" id="rap-pdf-btn">📄 Télécharger PDF</button>
-            </div>
-            <div class="panel-body">
-              <div id="rapports-body" class="empty-state">Chargement…</div>
+            <div class="panel-body" style="background:linear-gradient(135deg,var(--ocean-deep),var(--ocean-deeper));border-radius:12px;color:#fff;">
+              <h3 style="color:#fff;font-size:16px;">Rapports</h3>
+              <div style="font-size:12px;opacity:.8;margin-top:2px;">Générer et télécharger en PDF</div>
             </div>
           </div>
+          <div class="field" style="margin:0 0 12px;">
+            <label>Période</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="btn btn-sm" id="rap-month-prev-btn">◀</button>
+              <div id="rap-month-label" style="font-weight:700;flex:1;text-align:center;">Mois</div>
+              <button class="btn btn-sm" id="rap-month-next-btn">▶</button>
+            </div>
+          </div>
+          <div class="room-grid" id="rapport-cards-grid"></div>
         </section>
 
         <section class="section" id="section-admin">
@@ -1123,6 +1125,17 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-report">
+  <div class="modal" style="max-width:560px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3 id="report-modal-title" style="margin:0;">Rapport</h3>
+      <button onclick="closeModal('modal-report')" style="background:none;border:none;font-size:20px;color:var(--ink-soft);">✕</button>
+    </div>
+    <button class="btn btn-coral" style="width:100%;margin-bottom:14px;" id="report-pdf-btn">📄 Télécharger PDF</button>
+    <div id="report-preview" style="background:#f8fafc;border-radius:10px;padding:14px;font-family:monospace;font-size:11.5px;white-space:pre-wrap;line-height:1.6;max-height:60vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-invoice">
   <div class="modal" style="max-width:560px;">
     <h3>Nouvelle facture</h3>
@@ -1172,7 +1185,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+// Persistance offline (IndexedDB) volontairement désactivée : sur iOS Safari,
+// elle provoque l'erreur "The client has already been terminated" quand l'app
+// repasse en arrière-plan puis au premier plan (bug connu du SDK sur iOS).
+// Sans elle, l'app a simplement besoin d'une connexion active pour lire/écrire.
 
 const ROLES = {
   OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","bar","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
@@ -1244,11 +1260,15 @@ function fmtDate(d){
 }
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function toast(msg, type){
+  if(type==='danger' && /terminated|client is offline/i.test(msg)){
+    msg = 'Connexion perdue avec le serveur. Rechargez la page (glissez vers le bas ou fermez/rouvrez l\'app) puis réessayez.';
+  }
   const el = document.createElement('div');
   el.className = 'toast' + (type==='danger' ? ' danger' : '');
   el.textContent = msg;
+  el.style.zIndex = 700;
   document.getElementById('toast-wrap').appendChild(el);
-  setTimeout(()=>el.remove(), 3500);
+  setTimeout(()=>el.remove(), type==='danger' ? 6000 : 3500);
 }
 function openModal(id){ document.getElementById(id).classList.add('active'); }
 function closeModal(id){ document.getElementById(id).classList.remove('active'); }
@@ -2474,23 +2494,45 @@ let lastRapportData = null;
 document.getElementById('rap-month-prev-btn').addEventListener('click', ()=>{ rapportMonth.setMonth(rapportMonth.getMonth()-1); renderRapports(); });
 document.getElementById('rap-month-next-btn').addEventListener('click', ()=>{ rapportMonth.setMonth(rapportMonth.getMonth()+1); renderRapports(); });
 
-async function renderRapports(){
+const REPORT_CARDS = [
+  {key:'synthese',    icon:'📊', title:'Synthèse',     desc:'Recettes, dépenses, solde'},
+  {key:'caisse',      icon:'💰', title:'Caisse',       desc:'Toutes les recettes'},
+  {key:'reservations',icon:'📋', title:'Réservations', desc:'Séjours et check-ins'},
+  {key:'hebergement', icon:'🛏️', title:'Hébergement',  desc:'État et occupation'},
+  {key:'depenses',    icon:'💸', title:'Dépenses',     desc:'Toutes les sorties'},
+  {key:'clients',     icon:'👥', title:'Clients',      desc:'Liste et historique'},
+  {key:'maintenance', icon:'🔧', title:'Maintenance',  desc:'Tickets et coûts'},
+  {key:'stock',       icon:'📦', title:'Stock',        desc:'Inventaire et alertes'},
+  {key:'achats',      icon:'🛒', title:'Achats',       desc:'Bons de commande'},
+  {key:'menage',      icon:'🧹', title:'Ménage',       desc:'Statut des unités'},
+  {key:'factures',    icon:'🧾', title:'Factures',     desc:'Générées / payées'},
+  {key:'salaires',    icon:'💵', title:'Salaires',     desc:'Masse salariale du mois'},
+  {key:'charges',     icon:'⚡', title:'Charges',      desc:'Charges fixes et taxes'},
+  {key:'personnel',   icon:'🔑', title:'Personnel',    desc:'Liste des employés'},
+];
+
+function renderRapports(){
   document.getElementById('rap-month-label').textContent = monthLabel(rapportMonth);
-  const body = document.getElementById('rapports-body');
-  body.innerHTML = '<div class="empty-state">Calcul en cours…</div>';
+  document.getElementById('rapport-cards-grid').innerHTML = REPORT_CARDS.map(c=>`
+    <div class="room-card" onclick="openReportCard('${c.key}')" style="text-align:center;">
+      <div style="font-size:26px;">${c.icon}</div>
+      <div class="rname" style="margin-top:6px;">${c.title}</div>
+      <div class="rtype">${c.desc}</div>
+    </div>
+  `).join('');
+}
+
+async function computeMonthlyAggregates(){
   const y = rapportMonth.getFullYear(), m = rapportMonth.getMonth();
   const start = new Date(y,m,1), end = new Date(y,m+1,1);
   const startStr = dateStr(start), endStr = dateStr(new Date(y,m+1,0));
-  let snap, expSnap, ticketSnap;
-  try{
-    [snap, expSnap, ticketSnap] = await Promise.all([
-      db.collection('cashTransactions').where('createdAt','>=',start).where('createdAt','<',end).get(),
-      db.collection('expenses').where('createdAt','>=',start).where('createdAt','<',end).get(),
-      db.collection('maintenanceTickets').where('createdAt','>=',start).where('createdAt','<',end).get()
-    ]);
-  }catch(e){ body.innerHTML = `<div class="empty-state">Erreur de calcul : ${e.message}</div>`; return; }
-
-  // --- CAISSE / FINANCES ---
+  const [snap, expSnap, ticketSnap, poSnap, invSnap] = await Promise.all([
+    db.collection('cashTransactions').where('createdAt','>=',start).where('createdAt','<',end).get(),
+    db.collection('expenses').where('createdAt','>=',start).where('createdAt','<',end).get(),
+    db.collection('maintenanceTickets').where('createdAt','>=',start).where('createdAt','<',end).get(),
+    db.collection('purchaseOrders').where('createdAt','>=',start).where('createdAt','<',end).get(),
+    db.collection('invoices').where('createdAt','>=',start).where('createdAt','<',end).get()
+  ]);
   const moves = snap.docs.map(d=>d.data());
   const byRegister = {};
   let totalIn=0, totalOut=0;
@@ -2500,90 +2542,166 @@ async function renderRapports(){
     if(mv.type==='IN'){ byRegister[reg].in += mv.amount||0; totalIn += mv.amount||0; }
     else{ byRegister[reg].out += mv.amount||0; totalOut += mv.amount||0; }
   });
-
-  // --- DÉPENSES par catégorie ---
   const expByCat = {};
-  expSnap.docs.forEach(d=>{
-    const e = d.data();
-    expByCat[e.category] = (expByCat[e.category]||0) + (e.amount||0);
-  });
-
-  // --- HÉBERGEMENT : réservations dont le départ tombe dans le mois ---
+  expSnap.docs.forEach(d=>{ const e=d.data(); expByCat[e.category]=(expByCat[e.category]||0)+(e.amount||0); });
   const resasOut = cache.reservations.filter(r=>r.status==='CHECKED_OUT' && r.checkOut>=startStr && r.checkOut<=endStr);
   const nights = resasOut.reduce((s,r)=>s+Math.max(1,Math.round((new Date(r.checkOut)-new Date(r.checkIn))/86400000)),0);
-  const caHebergement = byRegister['reception'] ? byRegister['reception'].in : 0;
   const daysInMonth = new Date(y,m+1,0).getDate();
   const occMonthRate = cache.rooms.length ? Math.round(nights/(cache.rooms.length*daysInMonth)*100) : 0;
-
-  // --- MAINTENANCE ---
-  const ticketsThisMonth = ticketSnap.docs.map(d=>d.data());
-  const openTickets = cache.tickets.filter(t=>t.status!=='CLOSED').length;
-
-  // --- STOCK ---
-  const lowKitchenItems = cache.kitchenStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
-  const lowGeneralItems = cache.generalStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
-
-  // --- SALAIRES ---
   const key = monthKey(rapportMonth);
   const paidPayroll = cache.payroll.filter(p=>p.month===key && p.status==='paye').reduce((s,p)=>s+(p.amount||0),0);
-
-  lastRapportData = { totalIn, totalOut, byRegister, expByCat, resasOut, nights, caHebergement, occMonthRate,
-    ticketsThisMonth, openTickets, lowKitchenItems, lowGeneralItems, paidPayroll };
-
-  body.innerHTML = `
-    <div class="stat-grid">
-      <div class="stat-card stat-green"><div class="label">Total encaissé</div><div class="value">${fmtMoney(totalIn)}</div></div>
-      <div class="stat-card stat-red"><div class="label">Total dépensé</div><div class="value">${fmtMoney(totalOut)}</div></div>
-      <div class="stat-card stat-purple"><div class="label">Résultat net</div><div class="value">${fmtMoney(totalIn-totalOut)}</div></div>
-    </div>
-
-    <div class="panel"><div class="panel-head"><h3>🛏️ Hébergement</h3></div>
-      <div class="panel-body">
-        <div class="order-item-line"><span>Séjours terminés ce mois</span><span>${resasOut.length}</span></div>
-        <div class="order-item-line"><span>Nuits vendues</span><span>${nights}</span></div>
-        <div class="order-item-line"><span>CA hébergement (registre réception)</span><span>${fmtMoney(caHebergement)}</span></div>
-        <div class="order-item-line"><span>Taux d'occupation du mois</span><span>${occMonthRate}%</span></div>
-      </div>
-    </div>
-
-    <div class="panel"><div class="panel-head"><h3>💰 Caisse par registre</h3></div>
-      <div class="panel-body">
-        ${Object.keys(byRegister).length ? Object.entries(byRegister).map(([reg,v])=>`
-          <div class="order-item-line"><span style="text-transform:capitalize;">${reg}</span><span>${fmtMoney(v.in)} / <span style="color:var(--danger);">-${fmtMoney(v.out)}</span></span></div>
-        `).join('') : '<div class="empty-state">Aucun mouvement ce mois.</div>'}
-      </div>
-    </div>
-
-    <div class="panel"><div class="panel-head"><h3>💸 Dépenses par catégorie</h3></div>
-      <div class="panel-body">
-        ${Object.keys(expByCat).length ? Object.entries(expByCat).map(([cat,amt])=>`
-          <div class="order-item-line"><span>${cat}</span><span>${fmtMoney(amt)}</span></div>
-        `).join('') : '<div class="empty-state">Aucune dépense ce mois.</div>'}
-      </div>
-    </div>
-
-    <div class="panel"><div class="panel-head"><h3>💵 Salaires</h3></div>
-      <div class="panel-body">
-        <div class="order-item-line"><span>Total payé ce mois</span><span>${fmtMoney(paidPayroll)}</span></div>
-      </div>
-    </div>
-
-    <div class="panel"><div class="panel-head"><h3>🔧 Maintenance</h3></div>
-      <div class="panel-body">
-        <div class="order-item-line"><span>Tickets créés ce mois</span><span>${ticketsThisMonth.length}</span></div>
-        <div class="order-item-line"><span>Tickets actuellement ouverts</span><span>${openTickets}</span></div>
-      </div>
-    </div>
-
-    <div class="panel"><div class="panel-head"><h3>📦 Stock — alertes actuelles</h3></div>
-      <div class="panel-body">
-        ${(lowKitchenItems.length+lowGeneralItems.length)===0 ? '<div class="empty-state">Aucune alerte de stock.</div>' :
-          [...lowKitchenItems.map(i=>`<div class="order-item-line"><span>${i.name} (cuisine)</span><span style="color:var(--danger);">${i.quantity} ${i.unit}</span></div>`),
-           ...lowGeneralItems.map(i=>`<div class="order-item-line"><span>${i.name} (général)</span><span style="color:var(--danger);">${i.quantity} ${i.unit}</span></div>`)].join('')}
-      </div>
-    </div>
-  `;
+  return {
+    moves, byRegister, totalIn, totalOut, expByCat, expenses: expSnap.docs.map(d=>d.data()),
+    resasOut, nights, occMonthRate, daysInMonth,
+    tickets: ticketSnap.docs.map(d=>d.data()),
+    purchaseOrders: poSnap.docs.map(d=>d.data()),
+    invoices: invSnap.docs.map(d=>d.data())
+  };
 }
+
+function fmtLines(pairs){ return pairs.map(([l,v])=>`${l.padEnd(32,' ')}${v}`).join('\n'); }
+
+async function buildReportText(key){
+  const d = await computeMonthlyAggregates();
+  const header = `DOMAINE MONT-REPOS — KRIBI\n${'='.repeat(38)}\nPériode : ${monthLabel(rapportMonth)}\nGénéré le : ${new Date().toLocaleDateString('fr-FR')}\n${'='.repeat(38)}\n\n`;
+
+  if(key==='synthese'){
+    return header + `SYNTHÈSE GÉNÉRALE\n\n` + fmtLines([
+      ['Total encaissé', fmtMoney(d.totalIn)],
+      ['Total dépensé', fmtMoney(d.totalOut)],
+      ['Résultat net', fmtMoney(d.totalIn-d.totalOut)],
+      ['Occupation du mois', d.occMonthRate+'%'],
+      ['Nuits vendues', String(d.nights)],
+    ]);
+  }
+  if(key==='caisse'){
+    let t = header + `CAISSE — PAR REGISTRE\n\n`;
+    Object.entries(d.byRegister).forEach(([reg,v])=>{ t += fmtLines([[reg, `+${fmtMoney(v.in)} / -${fmtMoney(v.out)}`]])+'\n'; });
+    if(!Object.keys(d.byRegister).length) t += 'Aucun mouvement ce mois.\n';
+    t += `\nDétail (${d.moves.length} mouvements) :\n`;
+    d.moves.slice(0,40).forEach(mv=>{ t += `${fmtDate(mv.createdAt)} · ${mv.type==='IN'?'+':'-'}${fmtMoney(mv.amount)} · ${mv.note||''}\n`; });
+    return t;
+  }
+  if(key==='reservations'){
+    let t = header + `RÉSERVATIONS — SÉJOURS TERMINÉS CE MOIS (${d.resasOut.length})\n\n`;
+    d.resasOut.forEach(r=>{ t += `${resaDisplayName(r)} — ${roomName(r.roomId)} — ${r.checkIn} → ${r.checkOut} — ${fmtMoney(r.rate)}/nuit\n`; });
+    if(!d.resasOut.length) t += 'Aucun séjour terminé ce mois.\n';
+    return t;
+  }
+  if(key==='hebergement'){
+    let t = header + `HÉBERGEMENT — ÉTAT DES UNITÉS\n\n`;
+    cache.rooms.forEach(r=>{ t += `${r.name.padEnd(20,' ')}${ROOM_STATUS_LABEL[r.status]||r.status}\n`; });
+    t += `\nOccupation actuelle : ${cache.rooms.filter(r=>r.status==='OCCUPIED').length}/${cache.rooms.length}\n`;
+    t += `Occupation du mois : ${d.occMonthRate}% (${d.nights} nuits vendues)\n`;
+    return t;
+  }
+  if(key==='depenses'){
+    let t = header + `DÉPENSES PAR CATÉGORIE\n\n`;
+    Object.entries(d.expByCat).forEach(([cat,amt])=>{ t += fmtLines([[cat, fmtMoney(amt)]])+'\n'; });
+    if(!Object.keys(d.expByCat).length) t += 'Aucune dépense ce mois.\n';
+    t += `\nDétail :\n`;
+    d.expenses.forEach(e=>{ t += `${fmtDate(e.createdAt)} · ${e.category} · ${fmtMoney(e.amount)} · ${e.note||''}\n`; });
+    return t;
+  }
+  if(key==='clients'){
+    let t = header + `CLIENTS (${cache.guests.length})\n\n`;
+    cache.guests.forEach(g=>{
+      const stays = cache.reservations.filter(r=>r.guestId===g.id && r.status==='CHECKED_OUT').length;
+      t += `${(g.firstName+' '+g.lastName).trim().padEnd(28,' ')}${g.phone||''} — ${stays} séjour(s)\n`;
+    });
+    return t;
+  }
+  if(key==='maintenance'){
+    let t = header + `MAINTENANCE\n\n` + fmtLines([
+      ['Tickets créés ce mois', String(d.tickets.length)],
+      ['Tickets ouverts actuellement', String(cache.tickets.filter(t=>t.status!=='CLOSED').length)],
+    ]) + '\n\nListe des tickets ouverts :\n';
+    cache.tickets.filter(tk=>tk.status!=='CLOSED').forEach(tk=>{ t += `${roomName(tk.roomId)} — ${tk.description} (${tk.priority})\n`; });
+    return t;
+  }
+  if(key==='stock'){
+    const lowK = cache.kitchenStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
+    const lowG = cache.generalStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
+    const lowB = cache.barStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
+    let t = header + `STOCK — ALERTES ACTUELLES\n\n`;
+    t += `Cuisine :\n` + (lowK.length ? lowK.map(i=>`  ${i.name} — ${i.quantity} ${i.unit}`).join('\n') : '  Aucune alerte') + '\n\n';
+    t += `Bar :\n` + (lowB.length ? lowB.map(i=>`  ${i.name} — ${i.quantity} ${i.unit}`).join('\n') : '  Aucune alerte') + '\n\n';
+    t += `Général :\n` + (lowG.length ? lowG.map(i=>`  ${i.name} — ${i.quantity} ${i.unit}`).join('\n') : '  Aucune alerte') + '\n';
+    return t;
+  }
+  if(key==='achats'){
+    let t = header + `ACHATS — BONS DE COMMANDE CE MOIS (${d.purchaseOrders.length})\n\n`;
+    d.purchaseOrders.forEach(po=>{ t += `${po.orderNumber} — ${fmtMoney(po.totalAmount)} — ${po.status}\n`; });
+    if(!d.purchaseOrders.length) t += 'Aucun bon de commande ce mois.\n';
+    return t;
+  }
+  if(key==='menage'){
+    let t = header + `MÉNAGE — STATUT DES UNITÉS\n\n`;
+    cache.rooms.forEach(r=>{ t += `${r.name.padEnd(20,' ')}${HK_STATE_LABEL[hkStateOf(r)]}\n`; });
+    return t;
+  }
+  if(key==='factures'){
+    let t = header + `FACTURES CE MOIS (${d.invoices.length})\n\n`;
+    d.invoices.forEach(inv=>{ t += `${inv.invoiceNumber} — ${inv.clientName} — ${fmtMoney(inv.total)} — ${inv.status==='paid'?'Payée':'Non payée'}\n`; });
+    if(!d.invoices.length) t += 'Aucune facture ce mois.\n';
+    return t;
+  }
+  if(key==='salaires'){
+    const mk = monthKey(rapportMonth);
+    let t = header + `SALAIRES — ${monthLabel(rapportMonth).toUpperCase()}\n\n`;
+    hrEmployees().filter(e=>e.salary>0).forEach(e=>{
+      const rec = cache.payroll.find(p=>p.employeeId===e.id && p.month===mk);
+      t += `${e.name.padEnd(24,' ')}${fmtMoney(e.salary)} — ${rec&&rec.status==='paye'?'Payé':'Non payé'}\n`;
+    });
+    return t;
+  }
+  if(key==='charges'){
+    let t = header + `CHARGES FIXES\n\n`;
+    cache.fixedCharges.forEach(c=>{ t += `${c.name.padEnd(24,' ')}${fmtMoney(c.amount)} — échéance ${new Date(c.dueDate).toLocaleDateString('fr-FR')}\n`; });
+    if(!cache.fixedCharges.length) t += 'Aucune charge enregistrée.\n';
+    return t;
+  }
+  if(key==='personnel'){
+    let t = header + `PERSONNEL (${hrEmployees().length})\n\n`;
+    hrEmployees().forEach(e=>{ t += `${e.name.padEnd(24,' ')}${e.role||''} — ${e.status==='ACTIVE'?'Actif':e.status==='LEAVE'?'En congé':'Inactif'}\n`; });
+    return t;
+  }
+  return header + 'Rapport indisponible.';
+}
+
+let currentReportKey = null;
+window.openReportCard = async function(key){
+  currentReportKey = key;
+  const def = REPORT_CARDS.find(c=>c.key===key);
+  document.getElementById('report-modal-title').textContent = `${def.icon} ${def.title}`;
+  document.getElementById('report-preview').textContent = 'Calcul en cours…';
+  openModal('modal-report');
+  try{
+    const text = await buildReportText(key);
+    lastRapportData = text;
+    document.getElementById('report-preview').textContent = text;
+  }catch(e){ document.getElementById('report-preview').textContent = 'Erreur : '+e.message; }
+};
+
+document.getElementById('report-pdf-btn').addEventListener('click', ()=>{
+  if(!lastRapportData || !window.jspdf){ toast('Rapport pas encore prêt.', 'danger'); return; }
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFillColor(13,53,52); doc.rect(0,0,210,22,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(13); doc.setFont(undefined,'bold');
+    doc.text('DOMAINE MONT-REPOS', 14, 14);
+    doc.setTextColor(0,0,0); doc.setFont('courier','normal'); doc.setFontSize(9);
+    const lines = doc.splitTextToSize(lastRapportData, 180);
+    let y = 32;
+    lines.forEach(l=>{
+      if(y>285){ doc.addPage(); y=20; }
+      doc.text(l, 14, y); y += 4.6;
+    });
+    const def = REPORT_CARDS.find(c=>c.key===currentReportKey);
+    doc.save(`Rapport-${def?def.key:'mrms'}-${monthKey(rapportMonth)}.pdf`);
+  }catch(e){ toast('Erreur PDF : '+e.message, 'danger'); }
+});
 
 // --- ADMINISTRATION : ACCÈS / CODES PIN --------------------------------------------
 function generatePin(){
@@ -3660,47 +3778,7 @@ window.downloadInvoicePdf = function(id){
   }catch(e){ toast('Erreur lors de la génération du PDF : '+e.message, 'danger'); }
 };
 
-document.getElementById('rap-pdf-btn').addEventListener('click', ()=>{
-  if(!lastRapportData || !window.jspdf){ toast('Rapport pas encore calculé, réessayez.', 'danger'); return; }
-  const d = lastRapportData;
-  try{
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFillColor(13,53,52); doc.rect(0,0,210,28,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(16); doc.setFont(undefined,'bold');
-    doc.text('DOMAINE MONT-REPOS', 14, 14);
-    doc.setFontSize(9); doc.setFont(undefined,'normal');
-    doc.text('Rapport mensuel — Kribi, Cameroun', 14, 21);
-    doc.setTextColor(0,0,0);
-    doc.setFontSize(13); doc.setFont(undefined,'bold');
-    doc.text(`Rapport — ${monthLabel(rapportMonth)}`, 14, 40);
-    doc.setFontSize(10); doc.setFont(undefined,'normal');
-    let y = 52;
-    const line = (label, val)=>{ doc.text(label, 14, y); doc.text(val, 150, y); y += 7; };
-    doc.setFont(undefined,'bold'); doc.text('FINANCES', 14, y); y+=7; doc.setFont(undefined,'normal');
-    line('Total encaissé', fmtMoney(d.totalIn));
-    line('Total dépensé', fmtMoney(d.totalOut));
-    line('Résultat net', fmtMoney(d.totalIn-d.totalOut));
-    y+=3; doc.setFont(undefined,'bold'); doc.text('CAISSE PAR REGISTRE', 14, y); y+=7; doc.setFont(undefined,'normal');
-    Object.entries(d.byRegister).forEach(([reg,v])=>{ line(reg, `${fmtMoney(v.in)} / -${fmtMoney(v.out)}`); });
-    y+=3; doc.setFont(undefined,'bold'); doc.text('HÉBERGEMENT', 14, y); y+=7; doc.setFont(undefined,'normal');
-    line('Séjours terminés', String(d.resasOut.length));
-    line('Nuits vendues', String(d.nights));
-    line('CA hébergement', fmtMoney(d.caHebergement));
-    line("Taux d'occupation du mois", d.occMonthRate+'%');
-    y+=3; doc.setFont(undefined,'bold'); doc.text('DÉPENSES PAR CATÉGORIE', 14, y); y+=7; doc.setFont(undefined,'normal');
-    if(Object.keys(d.expByCat).length) Object.entries(d.expByCat).forEach(([cat,amt])=>{ line(cat, fmtMoney(amt)); });
-    else { doc.text('Aucune dépense ce mois.', 14, y); y+=7; }
-    y+=3; doc.setFont(undefined,'bold'); doc.text('SALAIRES & MAINTENANCE & STOCK', 14, y); y+=7; doc.setFont(undefined,'normal');
-    line('Salaires payés ce mois', fmtMoney(d.paidPayroll));
-    line('Tickets maintenance créés ce mois', String(d.ticketsThisMonth.length));
-    line('Tickets actuellement ouverts', String(d.openTickets));
-    line('Alertes stock cuisine', String(d.lowKitchenItems.length));
-    line('Alertes stock général', String(d.lowGeneralItems.length));
 
-    doc.save(`Rapport-${monthKey(rapportMonth)}.pdf`);
-  }catch(e){ toast('Erreur PDF : '+e.message, 'danger'); }
-});
 </script>
 </body>
 </html>
