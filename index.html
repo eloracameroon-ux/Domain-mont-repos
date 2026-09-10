@@ -176,6 +176,10 @@ tr:last-child td{border-bottom:none;}
 .order-item-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
 .order-item-line:last-child{border-bottom:none;}
 .po-row{display:grid;grid-template-columns:1fr 70px 90px 30px;gap:8px;margin-bottom:8px;align-items:center;}
+.inv-row{display:grid;grid-template-columns:1fr 50px 90px 30px;gap:8px;margin-bottom:8px;align-items:center;}
+.inv-row input{padding:8px 9px;border:1px solid var(--line);border-radius:var(--radius);font-size:13px;}
+.inv-row button{background:none;border:none;color:var(--danger);font-size:16px;}
+.invoice-card{border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#fff;}
 .po-row select, .po-row input{padding:8px 9px;border:1px solid var(--line);border-radius:var(--radius);font-size:13.5px;}
 .po-row button{background:none;border:none;color:var(--danger);font-size:16px;}
 .po-card{border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:#fff;}
@@ -471,6 +475,18 @@ tr:last-child td{border-bottom:none;}
           </div>
         </section>
 
+        <section class="section" id="section-facturation">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Factures</h3>
+              <button class="btn btn-dark btn-sm" id="add-invoice-btn">+ Nouvelle facture</button>
+            </div>
+            <div class="panel-body">
+              <div id="invoices-list" class="empty-state">Chargement…</div>
+            </div>
+          </div>
+        </section>
+
         <section class="section" id="section-depenses">
           <div class="stat-grid" id="depenses-stats"></div>
           <div class="panel">
@@ -595,6 +611,7 @@ tr:last-child td{border-bottom:none;}
       <div class="field"><label>Capacité</label><input type="number" id="room-capacity" placeholder="4"></div>
     </div>
     <div class="field"><label>Prix / nuit (FCFA)</label><input type="number" id="room-price" placeholder="75000"></div>
+    <div class="field"><label>Description (composition)</label><input id="room-description" placeholder="Ex : 3 chambres, canapé-lit, 2 salles de bain — max 8 pers."></div>
     <div class="field"><label>Note tarifaire / offre spéciale (optionnel)</label><input id="room-note" placeholder="Ex : Pack Saint-Valentin 865 000f (2 nuits tout inclus)"></div>
     <div class="field"><label>Statut</label>
       <select id="room-status">
@@ -609,6 +626,30 @@ tr:last-child td{border-bottom:none;}
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-room')">Annuler</button>
       <button class="btn btn-dark" id="save-room-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-quickcheckin">
+  <div class="modal">
+    <h3 id="qc-title">Check-in</h3>
+    <input type="hidden" id="qc-room-id">
+    <div class="field"><label>Nom du client</label><input id="qc-guest-name" placeholder="Nom et prénom"></div>
+    <div class="field"><label>Téléphone</label><input id="qc-guest-phone" placeholder="+237 6XX XXX XXX"></div>
+    <div class="grid-2">
+      <div class="field"><label>Arrivée</label><input type="date" id="qc-checkin"></div>
+      <div class="field"><label>Départ prévu</label><input type="date" id="qc-checkout"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Personnes</label><input type="number" id="qc-guests-count" value="2"></div>
+      <div class="field"><label>Tarif/nuit (FCFA)</label><input type="number" id="qc-rate"></div>
+    </div>
+    <div class="field"><label>Source</label>
+      <select id="qc-source"><option>Direct</option><option>WhatsApp</option><option>Facebook</option><option>Instagram</option><option>Booking.com</option><option>Corporate</option><option>Walk-in</option><option>Agence</option><option>Autre</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-quickcheckin')">Annuler</button>
+      <button class="btn btn-dark" id="save-quickcheckin-btn">Confirmer le check-in</button>
     </div>
   </div>
 </div>
@@ -1010,6 +1051,40 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-invoice">
+  <div class="modal" style="max-width:560px;">
+    <h3>Nouvelle facture</h3>
+    <div class="grid-2">
+      <div class="field"><label>Client</label><input id="inv-client-name" placeholder="Nom du client / entreprise"></div>
+      <div class="field"><label>Téléphone</label><input id="inv-client-phone"></div>
+    </div>
+    <div class="field">
+      <label>Lignes de facturation</label>
+      <div id="invoice-lines-rows"></div>
+      <button class="btn btn-sm" type="button" id="add-invoice-line-btn" style="margin-top:6px;">+ Ajouter une ligne</button>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Appliquer l'IR (2,2%)</label>
+        <select id="inv-ir"><option value="0">Non</option><option value="1">Oui</option></select>
+      </div>
+      <div class="field"><label>Mode de paiement</label>
+        <select id="inv-payment"><option>Espèces</option><option>MTN Mobile Money</option><option>Orange Money</option><option>Virement</option><option>Carte</option></select>
+      </div>
+    </div>
+    <div class="panel" style="margin:12px 0 0;">
+      <div class="panel-body" style="padding:12px 14px;">
+        <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:4px;"><span>Sous-total</span><strong id="inv-subtotal-preview">0 FCFA</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:4px;"><span>IR (2,2%)</span><strong id="inv-ir-preview">0 FCFA</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;"><span>Total</span><strong id="inv-total-preview">0 FCFA</strong></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-invoice')">Annuler</button>
+      <button class="btn btn-dark" id="save-invoice-btn">Créer la facture</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <script>
@@ -1028,10 +1103,10 @@ const db = firebase.firestore();
 db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
 const ROLES = {
-  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
-  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
-  RECEPTION:          { label:"Réception",      nav:["dashboard","rooms","reservations","guests","cash"] },
-  ACCOUNTANT:         { label:"Comptabilité",   nav:["dashboard","cash","reservations","purchasing","depenses","charges","salaires","rapports"] },
+  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
+  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
+  RECEPTION:          { label:"Réception",      nav:["dashboard","rooms","reservations","guests","cash","facturation"] },
+  ACCOUNTANT:         { label:"Comptabilité",   nav:["dashboard","cash","reservations","purchasing","facturation","depenses","charges","salaires","rapports"] },
   HOUSEKEEPING:       { label:"Housekeeping",   nav:["housekeeping","maintenance"] },
   MAINTENANCE:        { label:"Maintenance",    nav:["maintenance","rooms"] },
   MARKETING:          { label:"Marketing",      nav:["dashboard","guests"] },
@@ -1039,7 +1114,7 @@ const ROLES = {
   WAITER:             { label:"Serveur",        nav:["restaurant"] },
   RESTAURANT_MANAGER: { label:"Resp. Restaurant", nav:["dashboard","restaurant","kitchen","purchasing","planning","cash"] },
   BAR_MANAGER:        { label:"Resp. Bar",      nav:["restaurant","cash"] },
-  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] }
+  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","purchasing","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] }
 };
 
 const NAV_ITEMS = [
@@ -1054,6 +1129,7 @@ const NAV_ITEMS = [
   {key:"employees",     label:"Personnel",   icon:"👤"},
   {key:"planning",      label:"Planning",    icon:"🗓️"},
   {key:"cash",          label:"Caisse",      icon:"💰"},
+  {key:"facturation",   label:"Factures",    icon:"🧾"},
   {key:"depenses",      label:"Dépenses",    icon:"💸"},
   {key:"charges",       label:"Charges",     icon:"⚡"},
   {key:"salaires",      label:"Salaires",    icon:"💵"},
@@ -1066,7 +1142,8 @@ const NAV_ITEMS = [
 
 let currentUser = null;
 let currentProfile = null;
-let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[] };
+let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[], invoices:[] };
+let invoiceLineRows = [];
 let unsubscribers = [];
 let planningUnsub = null;
 let currentWeekStart = mondayOf(new Date());
@@ -1352,6 +1429,10 @@ function attachListeners(){
     cache.payroll = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderPayroll();
   }, err=>console.warn('payroll listener', err)));
+  unsubscribers.push(db.collection('invoices').orderBy('createdAt','desc').limit(100).onSnapshot(snap=>{
+    cache.invoices = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderInvoices();
+  }, err=>console.warn('invoices listener', err)));
   subscribePlanningWeek();
 }
 
@@ -1406,16 +1487,29 @@ function renderDashboard(){
 
 const ROOM_STATUS_LABEL = {AVAILABLE:'Disponible',OCCUPIED:'Occupée',RESERVED:'Réservée',CLEANING:'Nettoyage',MAINTENANCE:'Maintenance',BLOCKED:'Bloquée'};
 
+function activeResaForRoom(roomId){
+  return cache.reservations.find(r=>r.roomId===roomId && r.status==='CHECKED_IN');
+}
+
 function renderRooms(){
   const grid = document.getElementById('rooms-grid');
   if(!cache.rooms.length){ grid.innerHTML = '<div class="empty-state">Aucune unité enregistrée. Ajoutez la première.</div>'; return; }
   grid.innerHTML = cache.rooms.map(r=>{
     const cardMod = r.status==='OCCUPIED' ? 'occ2' : (r.status==='MAINTENANCE' ? 'maint' : '');
+    let actionBtn = '';
+    if(r.status==='AVAILABLE' || r.status==='RESERVED'){
+      actionBtn = `<button class="btn btn-sm btn-dark" style="margin-top:8px;width:100%;" onclick="event.stopPropagation();openQuickCheckin('${r.id}')">+ Check-in</button>`;
+    }else if(r.status==='OCCUPIED'){
+      const resa = activeResaForRoom(r.id);
+      actionBtn = resa ? `<button class="btn btn-sm btn-coral" style="margin-top:8px;width:100%;" onclick="event.stopPropagation();checkOut('${resa.id}')">Check-out</button>` : '';
+    }
     return `
     <div class="room-card ${cardMod}" data-id="${r.id}">
       <div class="rname">${r.name}</div>
-      <div class="rtype">${r.price ? fmtMoney(r.price)+'/nuit' : 'tarif à définir'}</div>
+      <div class="rtype">${r.description || ''}</div>
+      <div class="rtype" style="font-weight:700;color:var(--ink);">${r.price ? fmtMoney(r.price)+'/nuit' : 'tarif à définir'}</div>
       <span class="tag tag-${(r.status||'').toLowerCase()}">${ROOM_STATUS_LABEL[r.status]||r.status}</span>
+      ${actionBtn}
     </div>
   `;}).join('');
   grid.querySelectorAll('.room-card').forEach(c=>c.addEventListener('click', ()=>editRoom(c.dataset.id)));
@@ -1424,11 +1518,11 @@ function renderRooms(){
 function roomName(id){ const r = cache.rooms.find(x=>x.id===id); return r ? r.name : '—'; }
 
 const DOMAINE_UNITS_SEED = [
-  { name:"Suite Beach",    type:"Suite",  capacity:2, price:190000 },
-  { name:"Villa Riva",     type:"Villa",  capacity:4, price:235000 },
-  { name:"Villa Falla",    type:"Villa",  capacity:8, price:250000 },
-  { name:"Villa Ebène",    type:"Villa",  capacity:8, price:250000 },
-  { name:"Studio Cabanon", type:"Studio", capacity:4, price:120000 },
+  { name:"Suite Beach",    type:"Suite",  capacity:2, price:190000, description:"Capacité max 2 personnes" },
+  { name:"Villa Riva",     type:"Villa",  capacity:4, price:235000, description:"2 chambres, 2 salles de bain" },
+  { name:"Villa Falla",    type:"Villa",  capacity:8, price:250000, description:"3 chambres, canapé-lit, 2 salles de bain — capacité max 8 personnes" },
+  { name:"Villa Ebène",    type:"Villa",  capacity:8, price:250000, description:"3 chambres, canapé-lit, 2 salles de bain — capacité max 8 personnes" },
+  { name:"Studio Cabanon", type:"Studio", capacity:4, price:120000, description:"1 chambre + canapé-lit — capacité max 4 personnes" },
 ];
 
 document.getElementById('seed-rooms-btn').addEventListener('click', async ()=>{
@@ -1453,6 +1547,7 @@ document.getElementById('add-room-btn').addEventListener('click', ()=>{
   document.getElementById('room-type').value='Suite';
   document.getElementById('room-capacity').value='';
   document.getElementById('room-price').value='';
+  document.getElementById('room-description').value='';
   document.getElementById('room-note').value='';
   document.getElementById('room-status').value='AVAILABLE';
   openModal('modal-room');
@@ -1466,6 +1561,7 @@ function editRoom(id){
   document.getElementById('room-type').value = r.type||'Suite';
   document.getElementById('room-capacity').value = r.capacity||'';
   document.getElementById('room-price').value = r.price||'';
+  document.getElementById('room-description').value = r.description||'';
   document.getElementById('room-note').value = r.note||'';
   document.getElementById('room-status').value = r.status||'AVAILABLE';
   openModal('modal-room');
@@ -1478,6 +1574,7 @@ document.getElementById('save-room-btn').addEventListener('click', async ()=>{
     type: document.getElementById('room-type').value,
     capacity: Number(document.getElementById('room-capacity').value)||0,
     price: Number(document.getElementById('room-price').value)||0,
+    description: document.getElementById('room-description').value.trim(),
     note: document.getElementById('room-note').value.trim(),
     status: document.getElementById('room-status').value,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1533,6 +1630,7 @@ function renderReservations(){
       <td style="white-space:nowrap;">
         ${r.status==='CONFIRMED' ? `<button class="btn btn-sm btn-dark" onclick="checkIn('${r.id}')">Check-in</button>` : ''}
         ${r.status==='CHECKED_IN' ? `<button class="btn btn-sm btn-coral" onclick="checkOut('${r.id}')">Check-out</button>` : ''}
+        ${r.status==='CHECKED_OUT' ? `<button class="btn btn-sm btn-dark" onclick="invoiceFromReservation('${r.id}')">Facturer</button>` : ''}
         <button class="btn btn-sm btn-ghost" onclick="editResa('${r.id}')">✎</button>
       </td>
     </tr>
@@ -1626,6 +1724,53 @@ window.checkIn = async function(resaId){
   toast('Check-in effectué.');
 };
 
+// --- CHECK-IN RAPIDE DEPUIS LA CARTE D'HÉBERGEMENT ---------------------------------
+window.openQuickCheckin = function(roomId){
+  const room = cache.rooms.find(r=>r.id===roomId);
+  if(!room) return;
+  document.getElementById('qc-title').textContent = `Check-in — ${room.name}`;
+  document.getElementById('qc-room-id').value = roomId;
+  document.getElementById('qc-guest-name').value = '';
+  document.getElementById('qc-guest-phone').value = '';
+  document.getElementById('qc-checkin').value = todayStr();
+  document.getElementById('qc-checkout').value = dateStr(addDays(new Date(),1));
+  document.getElementById('qc-guests-count').value = 2;
+  document.getElementById('qc-rate').value = room.price || '';
+  document.getElementById('qc-source').value = 'Direct';
+  openModal('modal-quickcheckin');
+};
+
+document.getElementById('save-quickcheckin-btn').addEventListener('click', async ()=>{
+  const roomId = document.getElementById('qc-room-id').value;
+  const name = document.getElementById('qc-guest-name').value.trim();
+  const checkIn = document.getElementById('qc-checkin').value;
+  const checkOut = document.getElementById('qc-checkout').value;
+  if(!name){ toast('Le nom du client est requis.', 'danger'); return; }
+  if(checkOut <= checkIn){ toast('La date de départ doit être après l\'arrivée.', 'danger'); return; }
+  if(hasConflict(roomId, checkIn, checkOut, null)){ toast('Cette unité est déjà occupée sur cette période.', 'danger'); return; }
+  try{
+    const parts = name.split(' ');
+    const guestRef = await db.collection('guests').add({
+      firstName: parts.slice(0,-1).join(' ') || name,
+      lastName: parts.length>1 ? parts.slice(-1)[0] : '',
+      phone: document.getElementById('qc-guest-phone').value.trim(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('reservations').add({
+      guestId: guestRef.id, roomId, checkIn, checkOut,
+      guestsCount: Number(document.getElementById('qc-guests-count').value)||1,
+      rate: Number(document.getElementById('qc-rate').value)||0,
+      source: document.getElementById('qc-source').value,
+      status:'CHECKED_IN', actualCheckIn: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('rooms').doc(roomId).update({status:'OCCUPIED'});
+    await logAudit('reservation.checkin', `${name} → ${roomName(roomId)} (check-in rapide)`);
+    closeModal('modal-quickcheckin');
+    toast('Check-in effectué.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
 window.checkOut = async function(resaId){
   const r = cache.reservations.find(x=>x.id===resaId);
   if(!r) return;
@@ -1708,10 +1853,16 @@ document.getElementById('save-guest-btn').addEventListener('click', async ()=>{
   }catch(e){ toast('Erreur : '+e.message, 'danger'); }
 });
 
+function hrEmployees(){
+  // Le Propriétaire n'est pas un employé RH : c'est un accès (géré dans Administration).
+  return cache.employees.filter(e=>e.appRole!=='OWNER');
+}
+
 function renderEmployees(){
   const tbody = document.getElementById('employees-tbody');
-  if(!cache.employees.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun employé enregistré.</td></tr>'; return; }
-  tbody.innerHTML = cache.employees.map(e=>`
+  const list = hrEmployees();
+  if(!list.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun employé enregistré.</td></tr>'; return; }
+  tbody.innerHTML = list.map(e=>`
     <tr>
       <td>${e.name}</td><td>${e.role}</td><td>${e.phone||'—'}</td>
       <td><span class="tag tag-${e.status==='ACTIVE'?'confirmed':(e.status==='LEAVE'?'pending':'cancelled')}">${e.status==='ACTIVE'?'Actif':e.status==='LEAVE'?'En congé':'Inactif'}</span></td>
@@ -2081,7 +2232,7 @@ function renderPayroll(){
   document.getElementById('pay-month-label').textContent = monthLabel(payrollMonth);
   const key = monthKey(payrollMonth);
   const wrap = document.getElementById('payroll-list');
-  const paidEmployees = cache.employees.filter(e=>(e.status==='ACTIVE'||!e.status) && e.salary>0);
+  const paidEmployees = hrEmployees().filter(e=>(e.status==='ACTIVE'||!e.status) && e.salary>0);
   if(!paidEmployees.length){ wrap.innerHTML = '<div class="empty-state">Aucun employé avec un salaire renseigné. Ajoutez-le depuis l\'onglet Personnel.</div>'; return; }
   wrap.innerHTML = paidEmployees.map(e=>{
     const rec = cache.payroll.find(p=>p.employeeId===e.id && p.month===key);
@@ -2129,26 +2280,52 @@ async function renderRapports(){
   body.innerHTML = '<div class="empty-state">Calcul en cours…</div>';
   const y = rapportMonth.getFullYear(), m = rapportMonth.getMonth();
   const start = new Date(y,m,1), end = new Date(y,m+1,1);
-  let snap;
+  const startStr = dateStr(start), endStr = dateStr(new Date(y,m+1,0));
+  let snap, expSnap, ticketSnap;
   try{
-    snap = await db.collection('cashTransactions')
-      .where('createdAt','>=',start).where('createdAt','<',end).get();
+    [snap, expSnap, ticketSnap] = await Promise.all([
+      db.collection('cashTransactions').where('createdAt','>=',start).where('createdAt','<',end).get(),
+      db.collection('expenses').where('createdAt','>=',start).where('createdAt','<',end).get(),
+      db.collection('maintenanceTickets').where('createdAt','>=',start).where('createdAt','<',end).get()
+    ]);
   }catch(e){ body.innerHTML = `<div class="empty-state">Erreur de calcul : ${e.message}</div>`; return; }
 
+  // --- CAISSE / FINANCES ---
   const moves = snap.docs.map(d=>d.data());
   const byRegister = {};
   let totalIn=0, totalOut=0;
-  moves.forEach(m=>{
-    const reg = m.register || 'général';
+  moves.forEach(mv=>{
+    const reg = mv.register || 'général';
     byRegister[reg] = byRegister[reg] || {in:0,out:0};
-    if(m.type==='IN'){ byRegister[reg].in += m.amount||0; totalIn += m.amount||0; }
-    else{ byRegister[reg].out += m.amount||0; totalOut += m.amount||0; }
+    if(mv.type==='IN'){ byRegister[reg].in += mv.amount||0; totalIn += mv.amount||0; }
+    else{ byRegister[reg].out += mv.amount||0; totalOut += mv.amount||0; }
   });
 
-  const lowKitchen = cache.kitchenStock.filter(i=>Number(i.quantity)<=Number(i.minStock)).length;
-  const lowGeneral = cache.generalStock.filter(i=>Number(i.quantity)<=Number(i.minStock)).length;
+  // --- DÉPENSES par catégorie ---
+  const expByCat = {};
+  expSnap.docs.forEach(d=>{
+    const e = d.data();
+    expByCat[e.category] = (expByCat[e.category]||0) + (e.amount||0);
+  });
+
+  // --- HÉBERGEMENT : réservations dont le départ tombe dans le mois ---
+  const resasOut = cache.reservations.filter(r=>r.status==='CHECKED_OUT' && r.checkOut>=startStr && r.checkOut<=endStr);
+  const nights = resasOut.reduce((s,r)=>s+Math.max(1,Math.round((new Date(r.checkOut)-new Date(r.checkIn))/86400000)),0);
+  const caHebergement = byRegister['reception'] ? byRegister['reception'].in : 0;
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const occMonthRate = cache.rooms.length ? Math.round(nights/(cache.rooms.length*daysInMonth)*100) : 0;
+
+  // --- MAINTENANCE ---
+  const ticketsThisMonth = ticketSnap.docs.map(d=>d.data());
   const openTickets = cache.tickets.filter(t=>t.status!=='CLOSED').length;
-  const occRate = cache.rooms.length ? Math.round(cache.rooms.filter(r=>r.status==='OCCUPIED').length/cache.rooms.length*100) : 0;
+
+  // --- STOCK ---
+  const lowKitchenItems = cache.kitchenStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
+  const lowGeneralItems = cache.generalStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
+
+  // --- SALAIRES ---
+  const key = monthKey(rapportMonth);
+  const paidPayroll = cache.payroll.filter(p=>p.month===key && p.status==='paye').reduce((s,p)=>s+(p.amount||0),0);
 
   body.innerHTML = `
     <div class="stat-grid">
@@ -2156,17 +2333,51 @@ async function renderRapports(){
       <div class="stat-card stat-red"><div class="label">Total dépensé</div><div class="value">${fmtMoney(totalOut)}</div></div>
       <div class="stat-card stat-purple"><div class="label">Résultat net</div><div class="value">${fmtMoney(totalIn-totalOut)}</div></div>
     </div>
-    <div class="panel"><div class="panel-head"><h3>Détail par registre</h3></div>
+
+    <div class="panel"><div class="panel-head"><h3>🛏️ Hébergement</h3></div>
+      <div class="panel-body">
+        <div class="order-item-line"><span>Séjours terminés ce mois</span><span>${resasOut.length}</span></div>
+        <div class="order-item-line"><span>Nuits vendues</span><span>${nights}</span></div>
+        <div class="order-item-line"><span>CA hébergement (registre réception)</span><span>${fmtMoney(caHebergement)}</span></div>
+        <div class="order-item-line"><span>Taux d'occupation du mois</span><span>${occMonthRate}%</span></div>
+      </div>
+    </div>
+
+    <div class="panel"><div class="panel-head"><h3>💰 Caisse par registre</h3></div>
       <div class="panel-body">
         ${Object.keys(byRegister).length ? Object.entries(byRegister).map(([reg,v])=>`
-          <div class="order-item-line"><span>${reg}</span><span>${fmtMoney(v.in)} / <span style="color:var(--danger);">-${fmtMoney(v.out)}</span></span></div>
+          <div class="order-item-line"><span style="text-transform:capitalize;">${reg}</span><span>${fmtMoney(v.in)} / <span style="color:var(--danger);">-${fmtMoney(v.out)}</span></span></div>
         `).join('') : '<div class="empty-state">Aucun mouvement ce mois.</div>'}
       </div>
     </div>
-    <div class="stat-grid">
-      <div class="stat-card ${occRate>=60?'stat-green':'stat-amber'}"><div class="label">Occupation actuelle</div><div class="value">${occRate}%</div></div>
-      <div class="stat-card ${lowKitchen+lowGeneral>0?'stat-red':'stat-green'}"><div class="label">Alertes stock</div><div class="value">${lowKitchen+lowGeneral}</div></div>
-      <div class="stat-card ${openTickets>0?'stat-amber':'stat-green'}"><div class="label">Tickets maintenance ouverts</div><div class="value">${openTickets}</div></div>
+
+    <div class="panel"><div class="panel-head"><h3>💸 Dépenses par catégorie</h3></div>
+      <div class="panel-body">
+        ${Object.keys(expByCat).length ? Object.entries(expByCat).map(([cat,amt])=>`
+          <div class="order-item-line"><span>${cat}</span><span>${fmtMoney(amt)}</span></div>
+        `).join('') : '<div class="empty-state">Aucune dépense ce mois.</div>'}
+      </div>
+    </div>
+
+    <div class="panel"><div class="panel-head"><h3>💵 Salaires</h3></div>
+      <div class="panel-body">
+        <div class="order-item-line"><span>Total payé ce mois</span><span>${fmtMoney(paidPayroll)}</span></div>
+      </div>
+    </div>
+
+    <div class="panel"><div class="panel-head"><h3>🔧 Maintenance</h3></div>
+      <div class="panel-body">
+        <div class="order-item-line"><span>Tickets créés ce mois</span><span>${ticketsThisMonth.length}</span></div>
+        <div class="order-item-line"><span>Tickets actuellement ouverts</span><span>${openTickets}</span></div>
+      </div>
+    </div>
+
+    <div class="panel"><div class="panel-head"><h3>📦 Stock — alertes actuelles</h3></div>
+      <div class="panel-body">
+        ${(lowKitchenItems.length+lowGeneralItems.length)===0 ? '<div class="empty-state">Aucune alerte de stock.</div>' :
+          [...lowKitchenItems.map(i=>`<div class="order-item-line"><span>${i.name} (cuisine)</span><span style="color:var(--danger);">${i.quantity} ${i.unit}</span></div>`),
+           ...lowGeneralItems.map(i=>`<div class="order-item-line"><span>${i.name} (général)</span><span style="color:var(--danger);">${i.quantity} ${i.unit}</span></div>`)].join('')}
+      </div>
     </div>
   `;
 }
@@ -2320,7 +2531,7 @@ function shiftFor(employeeId, dStr){
 function renderPlanningGrid(){
   updateWeekLabel();
   const table = document.getElementById('planning-table');
-  const activeEmployees = cache.employees.filter(e=>e.status==='ACTIVE' || !e.status);
+  const activeEmployees = hrEmployees().filter(e=>e.status==='ACTIVE' || !e.status);
   const days = [...Array(7)].map((_,i)=>addDays(currentWeekStart,i));
 
   const thead = table.querySelector('thead');
@@ -2989,6 +3200,186 @@ window.advancePo = async function(id){
       toast('Bon de commande mis à jour.');
     }
   }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+};
+
+// --- FACTURATION -----------------------------------------------------------------------
+function renderInvoiceLineRows(){
+  const wrap = document.getElementById('invoice-lines-rows');
+  wrap.innerHTML = invoiceLineRows.map((row,idx)=>`
+    <div class="inv-row" data-idx="${idx}">
+      <input placeholder="Description" value="${row.description||''}" onchange="updateInvRow(${idx},'description',this.value)">
+      <input type="number" placeholder="Qté" value="${row.qty||1}" onchange="updateInvRow(${idx},'qty',this.value)">
+      <input type="number" placeholder="P.U." value="${row.unitPrice||''}" onchange="updateInvRow(${idx},'unitPrice',this.value)">
+      <button type="button" onclick="removeInvRow(${idx})">✕</button>
+    </div>
+  `).join('') || '<div class="empty-state" style="padding:14px;">Aucune ligne. Ajoutez-en une.</div>';
+  updateInvoicePreview();
+}
+window.updateInvRow = function(idx, field, value){
+  invoiceLineRows[idx][field] = field==='description' ? value : Number(value);
+  updateInvoicePreview();
+};
+window.removeInvRow = function(idx){ invoiceLineRows.splice(idx,1); renderInvoiceLineRows(); };
+
+document.getElementById('add-invoice-line-btn').addEventListener('click', ()=>{
+  invoiceLineRows.push({description:'', qty:1, unitPrice:0});
+  renderInvoiceLineRows();
+});
+
+function computeInvoiceTotals(){
+  const subtotal = invoiceLineRows.reduce((s,r)=>s+Number(r.qty||0)*Number(r.unitPrice||0),0);
+  const applyIr = document.getElementById('inv-ir').value==='1';
+  const ir = applyIr ? Math.round(subtotal*0.022) : 0;
+  return { subtotal, ir, total: subtotal+ir };
+}
+function updateInvoicePreview(){
+  const t = computeInvoiceTotals();
+  document.getElementById('inv-subtotal-preview').textContent = fmtMoney(t.subtotal);
+  document.getElementById('inv-ir-preview').textContent = fmtMoney(t.ir);
+  document.getElementById('inv-total-preview').textContent = fmtMoney(t.total);
+}
+document.getElementById('inv-ir').addEventListener('change', updateInvoicePreview);
+
+document.getElementById('add-invoice-btn').addEventListener('click', ()=>{
+  document.getElementById('inv-client-name').value='';
+  document.getElementById('inv-client-phone').value='';
+  document.getElementById('inv-ir').value='0';
+  document.getElementById('inv-payment').value='Espèces';
+  invoiceLineRows = [{description:'', qty:1, unitPrice:0}];
+  renderInvoiceLineRows();
+  openModal('modal-invoice');
+});
+
+// Pré-remplissage d'une facture depuis un séjour terminé (bouton "Facturer" en Réservations)
+window.invoiceFromReservation = function(resaId){
+  const r = cache.reservations.find(x=>x.id===resaId);
+  if(!r) return;
+  const nights = Math.max(1, Math.round((new Date(r.checkOut)-new Date(r.checkIn))/86400000));
+  document.getElementById('inv-client-name').value = guestName(r.guestId);
+  const g = cache.guests.find(x=>x.id===r.guestId);
+  document.getElementById('inv-client-phone').value = g ? (g.phone||'') : '';
+  document.getElementById('inv-ir').value='0';
+  document.getElementById('inv-payment').value='Espèces';
+  invoiceLineRows = [{description:`Séjour ${roomName(r.roomId)} — ${nights} nuit${nights>1?'s':''}`, qty:nights, unitPrice:r.rate||0}];
+  renderInvoiceLineRows();
+  openModal('modal-invoice');
+};
+
+document.getElementById('save-invoice-btn').addEventListener('click', async ()=>{
+  const clientName = document.getElementById('inv-client-name').value.trim();
+  const validLines = invoiceLineRows.filter(l=>l.description && l.qty>0);
+  if(!clientName){ toast('Le nom du client est requis.', 'danger'); return; }
+  if(!validLines.length){ toast('Ajoutez au moins une ligne valide.', 'danger'); return; }
+  const totals = computeInvoiceTotals();
+  try{
+    const counterRef = db.collection('counters').doc('invoices');
+    const invoiceNumber = await db.runTransaction(async (tx)=>{
+      const snap = await tx.get(counterRef);
+      const next = (snap.exists ? snap.data().seq : 0) + 1;
+      tx.set(counterRef, {seq: next});
+      const year = new Date().getFullYear();
+      return `MR-${year}-${String(next).padStart(4,'0')}`;
+    });
+    const invoiceData = {
+      invoiceNumber, clientName,
+      clientPhone: document.getElementById('inv-client-phone').value.trim(),
+      items: validLines,
+      subtotal: totals.subtotal, irApplied: document.getElementById('inv-ir').value==='1',
+      irAmount: totals.ir, total: totals.total,
+      paymentMode: document.getElementById('inv-payment').value,
+      status: 'unpaid',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('invoices').add(invoiceData);
+    await logAudit('invoice.create', `${invoiceNumber} — ${clientName} — ${fmtMoney(totals.total)}`);
+    closeModal('modal-invoice');
+    toast(`Facture ${invoiceNumber} créée.`);
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+function renderInvoices(){
+  const wrap = document.getElementById('invoices-list');
+  if(!cache.invoices.length){ wrap.innerHTML = '<div class="empty-state">Aucune facture créée.</div>'; return; }
+  wrap.innerHTML = cache.invoices.map(inv=>`
+    <div class="invoice-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-weight:800;">${inv.invoiceNumber} — ${inv.clientName}</div>
+          <div style="font-size:12px;color:var(--ink-soft);">${fmtDate(inv.createdAt)} · ${inv.paymentMode}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <strong>${fmtMoney(inv.total)}</strong>
+          <span class="tag tag-${inv.status==='paid'?'confirmed':'pending'}">${inv.status==='paid'?'Payée':'Non payée'}</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+        ${inv.status!=='paid' ? `<button class="btn btn-sm btn-dark" onclick="markInvoicePaid('${inv.id}')">Marquer payée</button>` : ''}
+        <button class="btn btn-sm btn-coral" onclick="downloadInvoicePdf('${inv.id}')">Télécharger PDF</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.markInvoicePaid = async function(id){
+  const inv = cache.invoices.find(x=>x.id===id);
+  if(!inv) return;
+  try{
+    await db.collection('invoices').doc(id).update({status:'paid'});
+    await db.collection('cashTransactions').add({
+      type:'IN', amount: inv.total, mode: inv.paymentMode, register:'general',
+      note:`Facture ${inv.invoiceNumber} — ${inv.clientName}`,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await logAudit('invoice.paid', `${inv.invoiceNumber} — ${fmtMoney(inv.total)}`);
+    toast('Facture marquée payée et ajoutée en caisse.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+};
+
+window.downloadInvoicePdf = function(id){
+  const inv = cache.invoices.find(x=>x.id===id);
+  if(!inv || !window.jspdf){ toast('Génération PDF indisponible (chargement en cours, réessayez).', 'danger'); return; }
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFillColor(13,53,52);
+    doc.rect(0,0,210,28,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(16); doc.setFont(undefined,'bold');
+    doc.text('DOMAINE MONT-REPOS', 14, 14);
+    doc.setFontSize(9); doc.setFont(undefined,'normal');
+    doc.text('Kribi, Cameroun', 14, 21);
+    doc.setTextColor(0,0,0);
+    doc.setFontSize(13); doc.setFont(undefined,'bold');
+    doc.text(`Facture ${inv.invoiceNumber}`, 14, 40);
+    doc.setFontSize(10); doc.setFont(undefined,'normal');
+    doc.text(`Date : ${fmtDate(inv.createdAt)}`, 14, 47);
+    doc.text(`Client : ${inv.clientName}`, 14, 53);
+    if(inv.clientPhone) doc.text(`Téléphone : ${inv.clientPhone}`, 14, 59);
+
+    let y = 72;
+    doc.setFont(undefined,'bold');
+    doc.text('Description', 14, y); doc.text('Qté', 120, y); doc.text('P.U.', 145, y); doc.text('Total', 175, y);
+    doc.setLineWidth(0.3); doc.line(14, y+2, 196, y+2);
+    doc.setFont(undefined,'normal');
+    y += 9;
+    (inv.items||[]).forEach(it=>{
+      doc.text(String(it.description), 14, y);
+      doc.text(String(it.qty), 120, y);
+      doc.text(it.unitPrice.toLocaleString('fr-FR'), 145, y);
+      doc.text((it.qty*it.unitPrice).toLocaleString('fr-FR'), 175, y);
+      y += 8;
+    });
+    y += 4; doc.line(120, y, 196, y); y += 8;
+    doc.text('Sous-total :', 140, y); doc.text(fmtMoney(inv.subtotal), 175, y); y+=7;
+    if(inv.irApplied){ doc.text('IR (2,2%) :', 140, y); doc.text(fmtMoney(inv.irAmount), 175, y); y+=7; }
+    doc.setFont(undefined,'bold');
+    doc.text('TOTAL :', 140, y); doc.text(fmtMoney(inv.total), 175, y); y+=10;
+    doc.setFont(undefined,'normal');
+    doc.text(`Mode de paiement : ${inv.paymentMode}`, 14, y); y+=6;
+    doc.text(`Statut : ${inv.status==='paid'?'Payée':'Non payée'}`, 14, y);
+
+    doc.save(`${inv.invoiceNumber}.pdf`);
+  }catch(e){ toast('Erreur lors de la génération du PDF : '+e.message, 'danger'); }
 };
 </script>
 </body>
