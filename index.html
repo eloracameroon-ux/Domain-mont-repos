@@ -431,6 +431,24 @@ tr:last-child td{border-bottom:none;}
           </div>
         </section>
 
+        <section class="section" id="section-approvisionnement">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Approvisionnement</h3>
+              <button class="btn btn-dark btn-sm" id="add-supply-btn">+ Mouvement</button>
+            </div>
+            <div class="panel-body" style="font-size:12.5px;color:var(--ink-soft);">
+              Réception → Magasin / Chambre froide → Distribution par service. Chaque mouvement peut être lié à un article de stock pour ajuster automatiquement la quantité.
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+            <button class="btn btn-sm supply-filter-btn active" data-filter="ALL">Tous</button>
+            <button class="btn btn-sm supply-filter-btn" data-filter="RECEPTION">Réceptions</button>
+            <button class="btn btn-sm supply-filter-btn" data-filter="DISTRIBUTION">Distributions</button>
+          </div>
+          <div id="supply-list"><div class="empty-state">Chargement…</div></div>
+        </section>
+
         <section class="section" id="section-besoins">
           <div class="panel">
             <div class="panel-body" style="background:linear-gradient(135deg,var(--ocean-deep),var(--ocean-deeper));border-radius:12px;color:#fff;">
@@ -463,11 +481,37 @@ tr:last-child td{border-bottom:none;}
           </div>
         </section>
 
+        <section class="section" id="section-chantier">
+          <div class="panel">
+            <div class="panel-body" style="background:linear-gradient(135deg,var(--ocean-deep),var(--ocean-deeper));border-radius:12px;color:#fff;">
+              <div style="font-size:11px;opacity:.7;letter-spacing:1px;text-transform:uppercase;">Domaine Mont-Repos — Chantier</div>
+              <div style="display:flex;gap:18px;margin-top:6px;flex-wrap:wrap;">
+                <div><div style="font-size:20px;font-weight:800;" id="chantier-total-engaged">0 FCFA</div><div style="font-size:11px;opacity:.8;">Engagé</div></div>
+                <div><div style="font-size:20px;font-weight:800;" id="chantier-total-paid">0 FCFA</div><div style="font-size:11px;opacity:.8;">Payé</div></div>
+                <div><div style="font-size:20px;font-weight:800;" id="chantier-total-remaining">0 FCFA</div><div style="font-size:11px;opacity:.8;">Restant</div></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-dark" style="width:100%;margin-bottom:12px;" id="add-chantier-btn">+ Nouveau chantier / lot</button>
+          <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+            <button class="btn btn-sm chantier-filter-btn active" data-filter="EN_COURS">En cours</button>
+            <button class="btn btn-sm chantier-filter-btn" data-filter="TERMINE">Terminés</button>
+            <button class="btn btn-sm chantier-filter-btn" data-filter="ALL">Tous</button>
+          </div>
+          <div id="chantier-list"><div class="empty-state">Chargement…</div></div>
+        </section>
+
         <section class="section" id="section-kitchen">
           <div class="panel">
             <div class="panel-head"><h3>Écran cuisine — commandes en attente</h3></div>
             <div class="panel-body">
               <div id="kds-cuisine-list" class="room-grid"><div class="empty-state">Aucune commande en attente.</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>🍕 Écran pizzeria / fast-food — commandes en attente</h3></div>
+            <div class="panel-body">
+              <div id="kds-pizzeria-list" class="room-grid"><div class="empty-state">Aucune commande en attente.</div></div>
             </div>
           </div>
           <div class="panel">
@@ -637,20 +681,57 @@ tr:last-child td{border-bottom:none;}
         </section>
 
         <section class="section" id="section-housekeeping">
-          <div class="panel">
-            <div class="panel-head">
-              <h3>Ménage & Nettoyage</h3>
-              <span id="hk-summary" style="font-size:12px;color:var(--ink-soft);"></span>
-            </div>
-            <div class="panel-body">
-              <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
-                <button class="btn btn-sm hk-filter-btn active" data-filter="ALL">Toutes</button>
-                <button class="btn btn-sm hk-filter-btn" data-filter="A_NETTOYER">À nettoyer</button>
-                <button class="btn btn-sm hk-filter-btn" data-filter="EN_COURS">En cours</button>
-                <button class="btn btn-sm hk-filter-btn" data-filter="PROPRE">Propres</button>
+          <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+            <button class="btn btn-sm hk-tab-btn active" data-tab="menage">🧹 Ménage</button>
+            <button class="btn btn-sm hk-tab-btn" data-tab="equip">🛠️ Équipements</button>
+            <button class="btn btn-sm hk-tab-btn" data-tab="incidents">⚠️ Signalements</button>
+            <button class="btn btn-sm hk-tab-btn" data-tab="hkstock">🧴 Stock ménage</button>
+          </div>
+
+          <div id="hk-tab-menage">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Ménage & Nettoyage</h3>
+                <span id="hk-summary" style="font-size:12px;color:var(--ink-soft);"></span>
               </div>
-              <div id="hk-list" class="room-grid"></div>
+              <div class="panel-body">
+                <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+                  <button class="btn btn-sm hk-filter-btn active" data-filter="ALL">Toutes</button>
+                  <button class="btn btn-sm hk-filter-btn" data-filter="A_NETTOYER">À nettoyer</button>
+                  <button class="btn btn-sm hk-filter-btn" data-filter="EN_COURS">En cours</button>
+                  <button class="btn btn-sm hk-filter-btn" data-filter="PROPRE">Propres</button>
+                </div>
+                <div id="hk-list" class="room-grid"></div>
+              </div>
             </div>
+          </div>
+
+          <div id="hk-tab-equip" style="display:none;">
+            <div class="field"><label>Unité</label>
+              <select id="equip-room-filter"><option value="">Toutes les unités</option></select>
+            </div>
+            <button class="btn btn-dark" style="width:100%;margin-bottom:12px;" id="add-equip-btn">+ Ajouter un équipement</button>
+            <div id="equip-list"><div class="empty-state">Chargement…</div></div>
+          </div>
+
+          <div id="hk-tab-incidents" style="display:none;">
+            <button class="btn btn-dark" style="width:100%;margin-bottom:12px;" id="add-incident-btn">+ Signaler une panne</button>
+            <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+              <button class="btn btn-sm incident-filter-btn active" data-filter="OUVERT">Ouverts</button>
+              <button class="btn btn-sm incident-filter-btn" data-filter="RESOLU">Résolus</button>
+              <button class="btn btn-sm incident-filter-btn" data-filter="ALL">Tous</button>
+            </div>
+            <div id="incidents-list"><div class="empty-state">Chargement…</div></div>
+          </div>
+
+          <div id="hk-tab-hkstock" style="display:none;">
+            <button class="btn btn-dark" style="width:100%;margin-bottom:12px;" id="add-hkstock-btn">+ Nouvel article</button>
+            <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+              <button class="btn btn-sm hkstock-filter-btn active" data-filter="ALL">Tous</button>
+              <button class="btn btn-sm hkstock-filter-btn" data-filter="Entretien">Produits d'entretien</button>
+              <button class="btn btn-sm hkstock-filter-btn" data-filter="Amenity">Amenities client</button>
+            </div>
+            <div id="hkstock-list"><div class="empty-state">Chargement…</div></div>
           </div>
         </section>
 
@@ -902,6 +983,12 @@ tr:last-child td{border-bottom:none;}
       <select id="cash-mode"><option>Espèces</option><option>MTN Mobile Money</option><option>Orange Money</option><option>Virement</option><option>Carte</option></select>
     </div>
     <div class="field"><label>Note</label><input id="cash-note" placeholder="Ex : acompte résa Villa Riva"></div>
+    <div class="field"><label>Origine</label>
+      <select id="cash-origin">
+        <option value="EXPLOITATION">Exploitation (recette / dépense normale de l'hôtel)</option>
+        <option value="INJECTION">Apport propriétaire — hors exploitation (Mme Duval)</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-cash')">Annuler</button>
       <button class="btn btn-dark" id="save-cash-btn">Enregistrer</button>
@@ -1031,11 +1118,13 @@ tr:last-child td{border-bottom:none;}
         <select id="menuitem-category">
           <option>Entrées</option><option>Cuisine camerounaise</option><option>Cuisine européenne</option>
           <option>Japonaise</option><option>Vietnamienne</option><option>Chinoise</option><option>Grillades</option>
-          <option>Pizzas</option><option>Desserts</option><option>Boissons</option><option>Cocktails</option><option>Brunch</option>
+          <option>Pizzas</option><option>Fast-food africain</option><option>Desserts</option>
+          <option>Café / Tisane</option><option>Sodas / Jus</option><option>Liqueurs</option><option>Cocktails</option><option>Mocktails</option>
+          <option>Boissons</option><option>Brunch</option>
         </select>
       </div>
       <div class="field"><label>Poste</label>
-        <select id="menuitem-station"><option value="cuisine">Cuisine</option><option value="bar">Bar</option></select>
+        <select id="menuitem-station"><option value="cuisine">Cuisine</option><option value="pizzeria">Pizzeria / Fast-food</option><option value="bar">Bar</option></select>
       </div>
     </div>
     <div class="field"><label>Prix de vente (FCFA)</label><input type="number" id="menuitem-price" placeholder="6500"></div>
@@ -1221,7 +1310,7 @@ tr:last-child td{border-bottom:none;}
   <div class="modal">
     <h3>Nouvelle dépense</h3>
     <div class="field"><label>Catégorie</label>
-      <select id="expense-category"><option>Alimentation</option><option>Personnel</option><option>Entretien</option><option>Fournitures</option><option>Transport</option><option>Marketing</option><option>Autre</option></select>
+      <select id="expense-category"><option>Alimentation</option><option>Personnel</option><option>Entretien</option><option>Fournitures</option><option>Transport</option><option>Marketing</option><option>Chantier</option><option>Autre</option></select>
     </div>
     <div class="field"><label>Montant (FCFA)</label><input type="number" id="expense-amount" placeholder="0"></div>
     <div class="field"><label>Note</label><input id="expense-note" placeholder="Ex : achat produits d'entretien"></div>
@@ -1239,7 +1328,7 @@ tr:last-child td{border-bottom:none;}
     <div class="field"><label>Nom</label><input id="charge-name" placeholder="Électricité ENEO, loyer, internet..."></div>
     <div class="grid-2">
       <div class="field"><label>Catégorie</label>
-        <select id="charge-category"><option>Électricité</option><option>Eau</option><option>Internet</option><option>Loyer</option><option>Assurance</option><option>Abonnement</option><option>Autre</option></select>
+        <select id="charge-category"><option>Électricité</option><option>Eau</option><option>Internet / Wifi</option><option>Canal+</option><option>Loyer</option><option>Assurance</option><option>Fiscal (impôts)</option><option>CNPS</option><option>Salaires</option><option>Jardin / espaces verts</option><option>Site web / logiciel</option><option>Surveillance / gardiennage</option><option>Abonnement</option><option>Autre</option></select>
       </div>
       <div class="field"><label>Montant (FCFA)</label><input type="number" id="charge-amount" placeholder="0"></div>
     </div>
@@ -1402,6 +1491,142 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-supply">
+  <div class="modal">
+    <h3>Nouveau mouvement</h3>
+    <div class="field"><label>Type de mouvement</label>
+      <select id="supply-type">
+        <option value="RECEPTION">Réception (fournisseur → magasin)</option>
+        <option value="DISTRIBUTION">Distribution (magasin → service)</option>
+      </select>
+    </div>
+    <div class="field"><label>Article</label>
+      <select id="supply-linked-stock"><option value="">— Article libre (texte ci-dessous) —</option></select>
+    </div>
+    <div class="field"><label>Désignation (si article libre)</label><input id="supply-item-name" placeholder="Ex : Sacs de ciment"></div>
+    <div class="grid-2">
+      <div class="field"><label>Quantité</label><input type="number" id="supply-qty" placeholder="0"></div>
+      <div class="field"><label>Unité</label><input id="supply-unit" placeholder="pièce, kg, carton..."></div>
+    </div>
+    <div class="field" id="supply-dept-wrap"><label>Service destinataire</label>
+      <select id="supply-department"><option>Cuisine</option><option>Bar</option><option>Restaurant</option><option>Ménage / Housekeeping</option><option>Réception</option><option>Chantier</option><option>Général</option></select>
+    </div>
+    <div class="field"><label>Date</label><input type="date" id="supply-date"></div>
+    <div class="field"><label>Note</label><textarea id="supply-note" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;" placeholder="Fournisseur, bon de livraison, responsable..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-supply')">Annuler</button>
+      <button class="btn btn-dark" id="save-supply-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-chantier">
+  <div class="modal">
+    <h3 id="chantier-modal-title">Nouveau chantier / lot</h3>
+    <input type="hidden" id="chantier-id">
+    <div class="field"><label>Titre / description</label><input id="chantier-title" placeholder="Ex : Réfection toiture Villa Ebène"></div>
+    <div class="grid-2">
+      <div class="field"><label>Corps de métier</label>
+        <select id="chantier-trade"><option>Électriciens</option><option>Menuisiers</option><option>Plombiers</option><option>Maçons</option><option>Peintres</option><option>Carreleurs</option><option>Métalliers / Soudure</option><option>Toiture / Couverture</option><option>Autre</option></select>
+      </div>
+      <div class="field"><label>Statut</label>
+        <select id="chantier-status"><option value="EN_COURS">En cours</option><option value="EN_ATTENTE">En attente</option><option value="TERMINE">Terminé</option></select>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Coût total prévu (FCFA)</label><input type="number" id="chantier-total-cost" placeholder="0"></div>
+      <div class="field"><label>Déjà payé (FCFA)</label><input type="number" id="chantier-paid" placeholder="0"></div>
+    </div>
+    <div class="field"><label>Date de début</label><input type="date" id="chantier-start"></div>
+    <div class="field"><label>Notes</label><textarea id="chantier-notes" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;" placeholder="Entreprise, contact, matériaux..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-chantier')">Annuler</button>
+      <button class="btn btn-dark" id="save-chantier-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-chantier-payment">
+  <div class="modal">
+    <h3>Enregistrer un paiement</h3>
+    <input type="hidden" id="chantier-payment-id">
+    <div class="field"><label>Montant payé (FCFA)</label><input type="number" id="chantier-payment-amount" placeholder="0"></div>
+    <div class="field"><label>Note</label><input id="chantier-payment-note" placeholder="Acompte, solde, tranche 2..."></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-chantier-payment')">Annuler</button>
+      <button class="btn btn-dark" id="save-chantier-payment-btn">Enregistrer le paiement</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-equip">
+  <div class="modal">
+    <h3 id="equip-modal-title">Nouvel équipement</h3>
+    <input type="hidden" id="equip-id">
+    <div class="field"><label>Unité</label>
+      <select id="equip-room"></select>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Catégorie</label>
+        <select id="equip-category"><option>Climatisation</option><option>Réfrigérateur</option><option>Four / Cuisinière</option><option>Micro-ondes</option><option>Lit</option><option>Matelas</option><option>Télévision</option><option>Chauffe-eau</option><option>Ventilateur</option><option>Sanitaires</option><option>Mobilier</option><option>Autre</option></select>
+      </div>
+      <div class="field"><label>État</label>
+        <select id="equip-condition"><option value="BON">Bon état</option><option value="A_VERIFIER">À vérifier</option><option value="HORS_SERVICE">Hors service</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Désignation / marque (optionnel)</label><input id="equip-name" placeholder="Ex : Split Samsung 1.5CV"></div>
+    <div class="field"><label>Notes</label><textarea id="equip-notes" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-equip')">Annuler</button>
+      <button class="btn btn-dark" id="save-equip-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-incident">
+  <div class="modal">
+    <h3>Signaler une panne</h3>
+    <div class="field"><label>Unité</label>
+      <select id="incident-room"></select>
+    </div>
+    <div class="field"><label>Équipement concerné (optionnel)</label>
+      <select id="incident-equip"><option value="">— Non lié à un équipement —</option></select>
+    </div>
+    <div class="field"><label>Description de la panne</label><textarea id="incident-description" rows="3" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;" placeholder="Ex : Clim ne refroidit plus, fuite d'eau..."></textarea></div>
+    <div class="field"><label>Priorité</label>
+      <select id="incident-priority"><option value="NORMALE">Normale</option><option value="URGENTE">Urgente</option><option value="BASSE">Basse</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-incident')">Annuler</button>
+      <button class="btn btn-dark" id="save-incident-btn">Signaler</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-hkstock">
+  <div class="modal">
+    <h3 id="hkstock-modal-title">Article stock ménage</h3>
+    <input type="hidden" id="hkstock-id">
+    <div class="field"><label>Nom</label><input id="hkstock-name" placeholder="Savon, shampoing, serviettes, détergent..."></div>
+    <div class="grid-2">
+      <div class="field"><label>Type</label>
+        <select id="hkstock-type"><option value="Entretien">Produit d'entretien</option><option value="Amenity">Amenity client</option></select>
+      </div>
+      <div class="field"><label>Unité</label>
+        <select id="hkstock-unit"><option value="pièce">pièce</option><option value="kg">kg</option><option value="l">l</option><option value="carton">carton</option><option value="flacon">flacon</option></select>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Quantité actuelle</label><input type="number" id="hkstock-qty" placeholder="0"></div>
+      <div class="field"><label>Seuil minimum</label><input type="number" id="hkstock-min" placeholder="0"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-hkstock')">Annuler</button>
+      <button class="btn btn-dark" id="save-hkstock-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <script>
@@ -1425,18 +1650,18 @@ const db = firebase.firestore();
 // Sans elle, l'app a simplement besoin d'une connexion active pour lire/écrire.
 
 const ROLES = {
-  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
-  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
+  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","approvisionnement","besoins","stock","chantier","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
+  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","approvisionnement","besoins","stock","chantier","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
   RECEPTION:          { label:"Réception",      nav:["dashboard","rooms","reservations","guests","brunch","cash","facturation"] },
-  ACCOUNTANT:         { label:"Comptabilité",   nav:["dashboard","cash","reservations","commercial","purchasing","facturation","depenses","charges","salaires","rapports"] },
+  ACCOUNTANT:         { label:"Comptabilité",   nav:["dashboard","cash","reservations","commercial","purchasing","approvisionnement","facturation","depenses","charges","chantier","salaires","rapports"] },
   HOUSEKEEPING:       { label:"Housekeeping",   nav:["housekeeping","maintenance","besoins"] },
   MAINTENANCE:        { label:"Maintenance",    nav:["maintenance","rooms","besoins"] },
   MARKETING:          { label:"Marketing",      nav:["dashboard","guests","commercial"] },
-  KITCHEN:            { label:"Cuisine",        nav:["kitchen","purchasing","stock","besoins"] },
+  KITCHEN:            { label:"Cuisine",        nav:["kitchen","purchasing","stock","besoins","approvisionnement"] },
   WAITER:             { label:"Serveur",        nav:["restaurant","brunch"] },
   RESTAURANT_MANAGER: { label:"Resp. Restaurant", nav:["dashboard","restaurant","brunch","kitchen","purchasing","besoins","planning","cash"] },
   BAR_MANAGER:        { label:"Resp. Bar",      nav:["restaurant","bar","besoins","cash"] },
-  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] }
+  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","approvisionnement","besoins","stock","chantier","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] }
 };
 
 const NAV_ITEMS = [
@@ -1450,8 +1675,10 @@ const NAV_ITEMS = [
   {key:"kitchen",       label:"Cuisine",     icon:"🍳"},
   {key:"bar",           label:"Bar",         icon:"🍹"},
   {key:"purchasing",    label:"Achats",      icon:"🛒"},
+  {key:"approvisionnement", label:"Approv.", icon:"🚚"},
   {key:"besoins",       label:"Besoins",     icon:"🛍️"},
   {key:"stock",         label:"Stock",       icon:"📦"},
+  {key:"chantier",      label:"Chantier",    icon:"🏗️"},
   {key:"employees",     label:"Personnel",   icon:"👤"},
   {key:"planning",      label:"Planning",    icon:"🗓️"},
   {key:"cash",          label:"Caisse",      icon:"💰"},
@@ -1468,7 +1695,7 @@ const NAV_ITEMS = [
 
 let currentUser = null;
 let currentProfile = null;
-let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[], invoices:[], barStock:[], needs:[], companies:[], companyEvents:[], brunchBookings:[] };
+let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[], invoices:[], barStock:[], needs:[], companies:[], companyEvents:[], brunchBookings:[], chantierWorks:[], supplyMovements:[], equipmentItems:[], hkIncidents:[], hkStock:[] };
 let invoiceLineRows = [];
 let unsubscribers = [];
 let planningUnsub = null;
@@ -1843,6 +2070,26 @@ function attachListeners(){
     cache.brunchBookings = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderBrunch();
   }, err=>console.warn('brunchBookings listener', err)));
+  unsubscribers.push(db.collection('chantierWorks').orderBy('createdAt','desc').onSnapshot(snap=>{
+    cache.chantierWorks = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderChantier();
+  }, err=>console.warn('chantierWorks listener', err)));
+  unsubscribers.push(db.collection('supplyMovements').orderBy('createdAt','desc').limit(150).onSnapshot(snap=>{
+    cache.supplyMovements = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderSupplyMovements();
+  }, err=>console.warn('supplyMovements listener', err)));
+  unsubscribers.push(db.collection('equipmentItems').orderBy('roomName').onSnapshot(snap=>{
+    cache.equipmentItems = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderEquipment();
+  }, err=>console.warn('equipmentItems listener', err)));
+  unsubscribers.push(db.collection('hkIncidents').orderBy('createdAt','desc').onSnapshot(snap=>{
+    cache.hkIncidents = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderIncidents();
+  }, err=>console.warn('hkIncidents listener', err)));
+  unsubscribers.push(db.collection('hkStock').orderBy('name').onSnapshot(snap=>{
+    cache.hkStock = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderHkStock();
+  }, err=>console.warn('hkStock listener', err)));
   subscribePlanningWeek();
 }
 
@@ -2580,17 +2827,21 @@ document.getElementById('save-employee-btn').addEventListener('click', async ()=
 
 function renderCash(){
   const tbody = document.getElementById('cash-tbody');
-  const inTotal = cache.cashMoves.filter(m=>m.type==='IN').reduce((s,m)=>s+(m.amount||0),0);
-  const outTotal = cache.cashMoves.filter(m=>m.type==='OUT').reduce((s,m)=>s+(m.amount||0),0);
+  const opMoves = cache.cashMoves.filter(m=>!m.isInjection);
+  const injMoves = cache.cashMoves.filter(m=>m.isInjection);
+  const inTotal = opMoves.filter(m=>m.type==='IN').reduce((s,m)=>s+(m.amount||0),0);
+  const outTotal = opMoves.filter(m=>m.type==='OUT').reduce((s,m)=>s+(m.amount||0),0);
+  const injTotal = injMoves.reduce((s,m)=>s+(m.type==='IN'?(m.amount||0):-(m.amount||0)),0);
   document.getElementById('cash-stats').innerHTML = `
-    <div class="stat-card accent-sage"><div class="label">Total entrées</div><div class="value">${fmtMoney(inTotal)}</div></div>
-    <div class="stat-card accent-coral"><div class="label">Total sorties</div><div class="value">${fmtMoney(outTotal)}</div></div>
-    <div class="stat-card"><div class="label">Solde</div><div class="value">${fmtMoney(inTotal-outTotal)}</div></div>
+    <div class="stat-card accent-sage"><div class="label">Entrées exploitation</div><div class="value">${fmtMoney(inTotal)}</div></div>
+    <div class="stat-card accent-coral"><div class="label">Sorties exploitation</div><div class="value">${fmtMoney(outTotal)}</div></div>
+    <div class="stat-card"><div class="label">Solde exploitation</div><div class="value">${fmtMoney(inTotal-outTotal)}</div></div>
+    <div class="stat-card accent-warn"><div class="label">Apports propriétaire (hors expl.)</div><div class="value">${fmtMoney(injTotal)}</div></div>
   `;
   if(!cache.cashMoves.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun mouvement.</td></tr>'; return; }
   tbody.innerHTML = cache.cashMoves.map(m=>`
-    <tr><td>${fmtDate(m.createdAt)}</td>
-    <td>${m.type==='IN'?'Entrée':'Sortie'}</td>
+    <tr style="${m.isInjection?'background:#fef9e7;':''}"><td>${fmtDate(m.createdAt)}</td>
+    <td>${m.type==='IN'?'Entrée':'Sortie'}${m.isInjection?' <span class="tag tag-pending" style="margin-left:4px;">Apport propriétaire</span>':''}</td>
     <td>${fmtMoney(m.amount)}</td><td>${m.mode||'—'}</td><td>${m.note||'—'}</td>
     <td><button class="btn btn-sm btn-danger" onclick="deleteCashMove('${m.id}')">✕</button></td></tr>
   `).join('');
@@ -2610,22 +2861,25 @@ document.getElementById('add-cash-btn').addEventListener('click', ()=>{
   document.getElementById('cash-amount').value='';
   document.getElementById('cash-mode').value='Espèces';
   document.getElementById('cash-note').value='';
+  document.getElementById('cash-origin').value='EXPLOITATION';
   openModal('modal-cash');
 });
 
 document.getElementById('save-cash-btn').addEventListener('click', async ()=>{
   const amount = Number(document.getElementById('cash-amount').value)||0;
   if(!amount){ toast('Montant requis.', 'danger'); return; }
+  const isInjection = document.getElementById('cash-origin').value==='INJECTION';
   const data = {
     type: document.getElementById('cash-type').value,
     amount, mode: document.getElementById('cash-mode').value,
     note: document.getElementById('cash-note').value,
-    register: 'reception',
+    register: isInjection ? 'capital' : 'reception',
+    isInjection,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   try{
     await db.collection('cashTransactions').add(data);
-    await logAudit('cash.movement', `${data.type} ${fmtMoney(amount)} (${data.mode})`);
+    await logAudit('cash.movement', `${isInjection?'[Apport propriétaire] ':''}${data.type} ${fmtMoney(amount)} (${data.mode})`);
     closeModal('modal-cash');
     toast('Mouvement enregistré.');
   }catch(e){ toast('Erreur : '+e.message, 'danger'); }
@@ -2760,6 +3014,296 @@ document.getElementById('save-hknote-btn').addEventListener('click', async ()=>{
   closeModal('modal-hknote');
   toast('Note enregistrée.');
 });
+
+// ===================== HOUSEKEEPING — ÉQUIPEMENTS / SIGNALEMENTS / STOCK =====================
+
+document.querySelectorAll('.hk-tab-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.hk-tab-btn').forEach(x=>x.classList.toggle('active', x===b));
+    ['menage','equip','incidents','hkstock'].forEach(t=>{
+      document.getElementById('hk-tab-'+t).style.display = (t===b.dataset.tab) ? '' : 'none';
+    });
+  });
+});
+
+function roomOptsHtml(){ return cache.rooms.map(r=>`<option value="${r.id}">${r.name}</option>`).join(''); }
+
+// --- Équipements par unité ---
+const EQUIP_COND_LABEL = {BON:'Bon état', A_VERIFIER:'À vérifier', HORS_SERVICE:'Hors service'};
+const EQUIP_COND_TAG = {BON:'tag-confirmed', A_VERIFIER:'tag-pending', HORS_SERVICE:'tag-cancelled'};
+
+function renderEquipRoomFilter(){
+  const sel = document.getElementById('equip-room-filter');
+  if(sel && !sel.dataset.filled){
+    sel.innerHTML = '<option value="">Toutes les unités</option>' + roomOptsHtml();
+    sel.dataset.filled = '1';
+    sel.addEventListener('change', renderEquipment);
+  }
+}
+
+function renderEquipment(){
+  renderEquipRoomFilter();
+  const wrap = document.getElementById('equip-list');
+  if(!wrap) return;
+  const filterRoom = document.getElementById('equip-room-filter') ? document.getElementById('equip-room-filter').value : '';
+  let list = cache.equipmentItems;
+  if(filterRoom) list = list.filter(e=>e.roomId===filterRoom);
+  if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucun équipement enregistré.</div>'; return; }
+  wrap.innerHTML = list.map(e=>`
+    <div class="panel" style="margin-bottom:8px;">
+      <div class="panel-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 14px;">
+        <div>
+          <div style="font-weight:800;">${e.category}${e.name?' — '+e.name:''}</div>
+          <div style="font-size:12px;color:var(--ink-soft);">${e.roomName||roomName(e.roomId)}</div>
+          ${e.notes ? `<div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">${e.notes}</div>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="tag ${EQUIP_COND_TAG[e.condition]||''}">${EQUIP_COND_LABEL[e.condition]||e.condition}</span>
+          <button class="btn btn-sm btn-ghost" onclick="editEquip('${e.id}')">✎</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteEquip('${e.id}')">✕</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('add-equip-btn').addEventListener('click', ()=>{
+  if(!cache.rooms.length){ toast('Créez d\'abord une unité.', 'danger'); return; }
+  document.getElementById('equip-modal-title').textContent = 'Nouvel équipement';
+  document.getElementById('equip-id').value = '';
+  document.getElementById('equip-room').innerHTML = roomOptsHtml();
+  document.getElementById('equip-category').value = 'Climatisation';
+  document.getElementById('equip-condition').value = 'BON';
+  document.getElementById('equip-name').value = '';
+  document.getElementById('equip-notes').value = '';
+  openModal('modal-equip');
+});
+
+window.editEquip = function(id){
+  const e = cache.equipmentItems.find(x=>x.id===id);
+  if(!e) return;
+  document.getElementById('equip-modal-title').textContent = 'Modifier l\'équipement';
+  document.getElementById('equip-id').value = e.id;
+  document.getElementById('equip-room').innerHTML = roomOptsHtml();
+  document.getElementById('equip-room').value = e.roomId;
+  document.getElementById('equip-category').value = e.category||'Climatisation';
+  document.getElementById('equip-condition').value = e.condition||'BON';
+  document.getElementById('equip-name').value = e.name||'';
+  document.getElementById('equip-notes').value = e.notes||'';
+  openModal('modal-equip');
+};
+
+document.getElementById('save-equip-btn').addEventListener('click', async ()=>{
+  const roomId = document.getElementById('equip-room').value;
+  if(!roomId){ toast('Choisissez une unité.', 'danger'); return; }
+  const id = document.getElementById('equip-id').value;
+  const data = {
+    roomId, roomName: roomName(roomId),
+    category: document.getElementById('equip-category').value,
+    condition: document.getElementById('equip-condition').value,
+    name: document.getElementById('equip-name').value.trim(),
+    notes: document.getElementById('equip-notes').value.trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){ await db.collection('equipmentItems').doc(id).update(data); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('equipmentItems').add(data); }
+    await logAudit('equipment.save', `${data.roomName} — ${data.category}`);
+    closeModal('modal-equip');
+    toast('Équipement enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.deleteEquip = async function(id){
+  if(!confirm('Supprimer cet équipement ?')) return;
+  await db.collection('equipmentItems').doc(id).delete();
+  await logAudit('equipment.delete', id);
+  toast('Équipement supprimé.');
+};
+
+// --- Signalements de pannes ---
+let incidentFilter = 'OUVERT';
+document.querySelectorAll('.incident-filter-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    incidentFilter = b.dataset.filter;
+    document.querySelectorAll('.incident-filter-btn').forEach(x=>x.classList.toggle('active', x===b));
+    renderIncidents();
+  });
+});
+
+const INCIDENT_PRIORITY_LABEL = {BASSE:'Basse', NORMALE:'Normale', URGENTE:'Urgente'};
+const INCIDENT_STATUS_LABEL = {OUVERT:'Ouvert', RESOLU:'Résolu'};
+const INCIDENT_STATUS_TAG = {OUVERT:'tag-pending', RESOLU:'tag-confirmed'};
+
+function renderIncidents(){
+  const wrap = document.getElementById('incidents-list');
+  if(!wrap) return;
+  let list = cache.hkIncidents;
+  if(incidentFilter!=='ALL') list = list.filter(i=>i.status===incidentFilter);
+  if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucun signalement dans cette liste.</div>'; return; }
+  wrap.innerHTML = list.map(i=>`
+    <div class="panel" style="margin-bottom:8px;">
+      <div class="panel-body" style="padding:12px 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:800;">${i.roomName||roomName(i.roomId)}${i.equipmentName?' — '+i.equipmentName:''}</div>
+            <div style="font-size:12px;color:var(--ink-soft);">${fmtDate(i.createdAt)} · Signalé par ${i.reportedBy||'—'}</div>
+          </div>
+          <span class="tag ${INCIDENT_STATUS_TAG[i.status]||''}">${INCIDENT_STATUS_LABEL[i.status]||i.status}</span>
+        </div>
+        <div style="font-size:13px;margin-top:8px;">${i.description}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+          <span class="tag ${i.priority==='URGENTE'?'tag-cancelled':'tag-reserved'}">${INCIDENT_PRIORITY_LABEL[i.priority]||i.priority}</span>
+          ${i.status!=='RESOLU' ? `<button class="btn btn-sm btn-dark" onclick="resolveIncident('${i.id}')">✓ Marquer résolu</button>` : ''}
+          <button class="btn btn-sm btn-danger" onclick="deleteIncident('${i.id}')">Suppr.</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('add-incident-btn').addEventListener('click', ()=>{
+  if(!cache.rooms.length){ toast('Créez d\'abord une unité.', 'danger'); return; }
+  document.getElementById('incident-room').innerHTML = roomOptsHtml();
+  document.getElementById('incident-equip').innerHTML = '<option value="">— Non lié à un équipement —</option>';
+  document.getElementById('incident-description').value = '';
+  document.getElementById('incident-priority').value = 'NORMALE';
+  openModal('modal-incident');
+});
+
+document.getElementById('incident-room').addEventListener('change', function(){
+  const roomId = this.value;
+  const items = cache.equipmentItems.filter(e=>e.roomId===roomId);
+  document.getElementById('incident-equip').innerHTML = '<option value="">— Non lié à un équipement —</option>' +
+    items.map(e=>`<option value="${e.id}">${e.category}${e.name?' — '+e.name:''}</option>`).join('');
+});
+
+const INCIDENT_TO_TICKET_PRIORITY = {BASSE:'LOW', NORMALE:'MEDIUM', URGENTE:'CRITICAL'};
+document.getElementById('save-incident-btn').addEventListener('click', async ()=>{
+  const roomId = document.getElementById('incident-room').value;
+  const description = document.getElementById('incident-description').value.trim();
+  if(!description){ toast('Décrivez la panne.', 'danger'); return; }
+  const equipId = document.getElementById('incident-equip').value || null;
+  const equip = equipId ? cache.equipmentItems.find(e=>e.id===equipId) : null;
+  const priority = document.getElementById('incident-priority').value;
+  const data = {
+    roomId, roomName: roomName(roomId),
+    equipmentItemId: equipId,
+    equipmentName: equip ? (equip.category+(equip.name?' — '+equip.name:'')) : null,
+    description, priority,
+    status: 'OUVERT',
+    reportedBy: currentProfile ? currentProfile.name : '—',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    await db.collection('hkIncidents').add(data);
+    if(equipId){ await db.collection('equipmentItems').doc(equipId).update({condition:'HORS_SERVICE'}); }
+    await db.collection('maintenanceTickets').add({
+      roomId, description: `[Ménage] ${data.equipmentName?data.equipmentName+' — ':''}${description}`,
+      priority: INCIDENT_TO_TICKET_PRIORITY[priority]||'MEDIUM',
+      status:'OPEN', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await logAudit('incident.report', `${data.roomName} — ${description}`);
+    closeModal('modal-incident');
+    toast('Panne signalée. Un ticket de maintenance a été créé automatiquement.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.resolveIncident = async function(id){
+  await db.collection('hkIncidents').doc(id).update({status:'RESOLU', resolvedAt: firebase.firestore.FieldValue.serverTimestamp()});
+  await logAudit('incident.resolve', id);
+  toast('Signalement marqué résolu.');
+};
+
+window.deleteIncident = async function(id){
+  if(!confirm('Supprimer ce signalement ?')) return;
+  await db.collection('hkIncidents').doc(id).delete();
+  await logAudit('incident.delete', id);
+  toast('Signalement supprimé.');
+};
+
+// --- Stock ménage (entretien + amenities) ---
+let hkStockFilter = 'ALL';
+document.querySelectorAll('.hkstock-filter-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    hkStockFilter = b.dataset.filter;
+    document.querySelectorAll('.hkstock-filter-btn').forEach(x=>x.classList.toggle('active', x===b));
+    renderHkStock();
+  });
+});
+
+function renderHkStock(){
+  const wrap = document.getElementById('hkstock-list');
+  if(!wrap) return;
+  let list = cache.hkStock;
+  if(hkStockFilter!=='ALL') list = list.filter(i=>i.type===hkStockFilter);
+  if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucun article dans cette liste.</div>'; return; }
+  wrap.innerHTML = list.map(i=>{
+    const low = Number(i.quantity) <= Number(i.minStock);
+    return `<div class="panel" style="margin-bottom:8px;">
+      <div class="panel-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 14px;">
+        <div>
+          <div style="font-weight:800;">${i.name}</div>
+          <div style="font-size:12px;color:var(--ink-soft);">${i.type==='Amenity'?'Amenity client':'Produit d\'entretien'} · ${i.quantity||0} ${i.unit||''}${low?' ⚠️ sous le seuil':''}</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm btn-ghost" onclick="editHkStock('${i.id}')">✎</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteHkStock('${i.id}')">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('add-hkstock-btn').addEventListener('click', ()=>{
+  document.getElementById('hkstock-modal-title').textContent = 'Nouvel article stock ménage';
+  document.getElementById('hkstock-id').value = '';
+  document.getElementById('hkstock-name').value = '';
+  document.getElementById('hkstock-type').value = 'Entretien';
+  document.getElementById('hkstock-unit').value = 'pièce';
+  document.getElementById('hkstock-qty').value = '';
+  document.getElementById('hkstock-min').value = '';
+  openModal('modal-hkstock');
+});
+
+window.editHkStock = function(id){
+  const i = cache.hkStock.find(x=>x.id===id);
+  if(!i) return;
+  document.getElementById('hkstock-modal-title').textContent = 'Modifier l\'article';
+  document.getElementById('hkstock-id').value = i.id;
+  document.getElementById('hkstock-name').value = i.name||'';
+  document.getElementById('hkstock-type').value = i.type||'Entretien';
+  document.getElementById('hkstock-unit').value = i.unit||'pièce';
+  document.getElementById('hkstock-qty').value = i.quantity||0;
+  document.getElementById('hkstock-min').value = i.minStock||0;
+  openModal('modal-hkstock');
+};
+
+document.getElementById('save-hkstock-btn').addEventListener('click', async ()=>{
+  const name = document.getElementById('hkstock-name').value.trim();
+  if(!name){ toast('Le nom est requis.', 'danger'); return; }
+  const id = document.getElementById('hkstock-id').value;
+  const data = {
+    name, type: document.getElementById('hkstock-type').value,
+    unit: document.getElementById('hkstock-unit').value,
+    quantity: Number(document.getElementById('hkstock-qty').value)||0,
+    minStock: Number(document.getElementById('hkstock-min').value)||0,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){ await db.collection('hkStock').doc(id).update(data); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('hkStock').add(data); }
+    closeModal('modal-hkstock');
+    toast('Article enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.deleteHkStock = async function(id){
+  if(!confirm('Supprimer cet article ?')) return;
+  await db.collection('hkStock').doc(id).delete();
+  await logAudit('hkstock.delete', id);
+  toast('Article supprimé.');
+};
 
 function renderAudit(){
   const tbody = document.getElementById('audit-tbody');
@@ -3252,6 +3796,240 @@ window.deleteBrunch = async function(id){
   toast('Réservation brunch supprimée.');
 };
 
+// ===================== APPROVISIONNEMENT (Réception → Stock → Distribution) =====================
+
+let supplyFilter = 'ALL';
+document.querySelectorAll('.supply-filter-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    supplyFilter = b.dataset.filter;
+    document.querySelectorAll('.supply-filter-btn').forEach(x=>x.classList.toggle('active', x===b));
+    renderSupplyMovements();
+  });
+});
+
+document.getElementById('supply-type').addEventListener('change', function(){
+  document.getElementById('supply-dept-wrap').style.display = this.value==='DISTRIBUTION' ? '' : 'none';
+});
+
+document.getElementById('add-supply-btn').addEventListener('click', ()=>{
+  document.getElementById('supply-type').value = 'RECEPTION';
+  document.getElementById('supply-dept-wrap').style.display = 'none';
+  const sel = document.getElementById('supply-linked-stock');
+  sel.innerHTML = '<option value="">— Article libre (texte ci-dessous) —</option>' + allStockItemsForLink().map(i=>`<option value="${i.id}">${i.label}</option>`).join('');
+  document.getElementById('supply-item-name').value = '';
+  document.getElementById('supply-qty').value = '';
+  document.getElementById('supply-unit').value = '';
+  document.getElementById('supply-department').value = 'Général';
+  document.getElementById('supply-date').value = todayStr();
+  document.getElementById('supply-note').value = '';
+  openModal('modal-supply');
+});
+
+document.getElementById('save-supply-btn').addEventListener('click', async ()=>{
+  const type = document.getElementById('supply-type').value;
+  const linkedStock = document.getElementById('supply-linked-stock').value || null;
+  const linkedLabel = linkedStock ? (allStockItemsForLink().find(i=>i.id===linkedStock)||{}).label : '';
+  const itemName = linkedStock ? linkedLabel : document.getElementById('supply-item-name').value.trim();
+  const qty = Number(document.getElementById('supply-qty').value)||0;
+  if(!itemName){ toast('Choisissez un article lié ou saisissez une désignation.', 'danger'); return; }
+  if(!qty){ toast('La quantité est requise.', 'danger'); return; }
+  const data = {
+    type,
+    itemName,
+    linkedStock,
+    qty,
+    unit: document.getElementById('supply-unit').value.trim(),
+    department: type==='DISTRIBUTION' ? document.getElementById('supply-department').value : null,
+    date: document.getElementById('supply-date').value || todayStr(),
+    note: document.getElementById('supply-note').value.trim(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    await db.collection('supplyMovements').add(data);
+    if(linkedStock){
+      const [col, itemId] = linkedStock.split(':');
+      const collMap = {kitchen:'kitchenStock', bar:'barStock', general:'generalStock'};
+      const cacheMap = {kitchen:cache.kitchenStock, bar:cache.barStock, general:cache.generalStock};
+      const item = (cacheMap[col]||[]).find(x=>x.id===itemId);
+      if(item){
+        const delta = type==='RECEPTION' ? qty : -qty;
+        await db.collection(collMap[col]).doc(itemId).update({quantity: (Number(item.quantity)||0) + delta});
+      }
+    }
+    await logAudit('supply.'+type.toLowerCase(), `${itemName} (${qty})`);
+    closeModal('modal-supply');
+    toast('Mouvement enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+function renderSupplyMovements(){
+  const wrap = document.getElementById('supply-list');
+  if(!wrap) return;
+  let list = cache.supplyMovements;
+  if(supplyFilter!=='ALL') list = list.filter(m=>m.type===supplyFilter);
+  if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucun mouvement enregistré.</div>'; return; }
+  wrap.innerHTML = list.map(m=>`
+    <div class="panel" style="margin-bottom:8px;">
+      <div class="panel-body" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 14px;">
+        <div>
+          <div style="font-weight:800;">${m.type==='RECEPTION'?'📥':'📤'} ${m.itemName}</div>
+          <div style="font-size:12px;color:var(--ink-soft);">${m.qty} ${m.unit||''} · ${m.date||''}${m.department?' → '+m.department:''}</div>
+          ${m.note ? `<div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">${m.note}</div>` : ''}
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="deleteSupplyMovement('${m.id}')">Suppr.</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.deleteSupplyMovement = async function(id){
+  if(!confirm('Supprimer ce mouvement ? (la quantité de stock déjà ajustée ne sera pas recalculée automatiquement)')) return;
+  await db.collection('supplyMovements').doc(id).delete();
+  await logAudit('supply.delete', id);
+  toast('Mouvement supprimé.');
+};
+
+// ===================== CHANTIER =====================
+
+let chantierFilter = 'EN_COURS';
+document.querySelectorAll('.chantier-filter-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    chantierFilter = b.dataset.filter;
+    document.querySelectorAll('.chantier-filter-btn').forEach(x=>x.classList.toggle('active', x===b));
+    renderChantier();
+  });
+});
+
+const CHANTIER_STATUS_LABEL = {EN_COURS:'En cours', EN_ATTENTE:'En attente', TERMINE:'Terminé'};
+const CHANTIER_STATUS_TAG = {EN_COURS:'tag-checked_in', EN_ATTENTE:'tag-pending', TERMINE:'tag-confirmed'};
+
+function renderChantier(){
+  const totalEngaged = cache.chantierWorks.reduce((s,c)=>s+(Number(c.totalCost)||0),0);
+  const totalPaid = cache.chantierWorks.reduce((s,c)=>s+(Number(c.paidAmount)||0),0);
+  document.getElementById('chantier-total-engaged').textContent = fmtMoney(totalEngaged);
+  document.getElementById('chantier-total-paid').textContent = fmtMoney(totalPaid);
+  document.getElementById('chantier-total-remaining').textContent = fmtMoney(totalEngaged-totalPaid);
+
+  const wrap = document.getElementById('chantier-list');
+  let list = cache.chantierWorks;
+  if(chantierFilter!=='ALL') list = list.filter(c=>c.status===chantierFilter);
+  if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucun chantier dans cette liste.</div>'; return; }
+  wrap.innerHTML = list.map(c=>{
+    const total = Number(c.totalCost)||0;
+    const paid = Number(c.paidAmount)||0;
+    const remaining = total-paid;
+    const pct = total>0 ? Math.min(100, Math.round(paid/total*100)) : 0;
+    return `
+    <div class="panel" style="margin-bottom:10px;">
+      <div class="panel-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:800;">${c.title}</div>
+            <div style="font-size:12px;color:var(--ink-soft);">${c.trade||''}${c.startDate?' · Début '+new Date(c.startDate).toLocaleDateString('fr-FR'):''}</div>
+          </div>
+          <span class="tag ${CHANTIER_STATUS_TAG[c.status]||''}">${CHANTIER_STATUS_LABEL[c.status]||c.status}</span>
+        </div>
+        <div style="margin-top:10px;background:#eee;border-radius:6px;height:8px;overflow:hidden;">
+          <div style="width:${pct}%;background:var(--ocean-deep);height:100%;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-top:4px;">
+          <span>Payé : ${fmtMoney(paid)}</span>
+          <span>Restant : ${fmtMoney(remaining)}</span>
+          <span>Total : ${fmtMoney(total)}</span>
+        </div>
+        ${c.notes ? `<div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">${c.notes}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          ${remaining>0 ? `<button class="btn btn-sm btn-dark" onclick="openChantierPayment('${c.id}')">+ Paiement</button>` : ''}
+          <button class="btn btn-sm btn-ghost" onclick="editChantier('${c.id}')">Modifier</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteChantier('${c.id}')">Suppr.</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('add-chantier-btn').addEventListener('click', ()=>{
+  document.getElementById('chantier-modal-title').textContent = 'Nouveau chantier / lot';
+  document.getElementById('chantier-id').value = '';
+  document.getElementById('chantier-title').value = '';
+  document.getElementById('chantier-trade').value = 'Électriciens';
+  document.getElementById('chantier-status').value = 'EN_COURS';
+  document.getElementById('chantier-total-cost').value = '';
+  document.getElementById('chantier-paid').value = '0';
+  document.getElementById('chantier-start').value = todayStr();
+  document.getElementById('chantier-notes').value = '';
+  openModal('modal-chantier');
+});
+
+window.editChantier = function(id){
+  const c = cache.chantierWorks.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('chantier-modal-title').textContent = 'Modifier le chantier';
+  document.getElementById('chantier-id').value = c.id;
+  document.getElementById('chantier-title').value = c.title||'';
+  document.getElementById('chantier-trade').value = c.trade||'Électriciens';
+  document.getElementById('chantier-status').value = c.status||'EN_COURS';
+  document.getElementById('chantier-total-cost').value = c.totalCost||'';
+  document.getElementById('chantier-paid').value = c.paidAmount||0;
+  document.getElementById('chantier-start').value = c.startDate||todayStr();
+  document.getElementById('chantier-notes').value = c.notes||'';
+  openModal('modal-chantier');
+};
+
+document.getElementById('save-chantier-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('chantier-id').value;
+  const title = document.getElementById('chantier-title').value.trim();
+  if(!title){ toast('Le titre est requis.', 'danger'); return; }
+  const data = {
+    title,
+    trade: document.getElementById('chantier-trade').value,
+    status: document.getElementById('chantier-status').value,
+    totalCost: Number(document.getElementById('chantier-total-cost').value)||0,
+    paidAmount: Number(document.getElementById('chantier-paid').value)||0,
+    startDate: document.getElementById('chantier-start').value,
+    notes: document.getElementById('chantier-notes').value.trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){ await db.collection('chantierWorks').doc(id).update(data); await logAudit('chantier.update', title); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('chantierWorks').add(data); await logAudit('chantier.create', title); }
+    closeModal('modal-chantier');
+    toast('Chantier enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.deleteChantier = async function(id){
+  if(!confirm('Supprimer ce chantier ? (les paiements déjà enregistrés en caisse/dépenses ne seront pas annulés)')) return;
+  await db.collection('chantierWorks').doc(id).delete();
+  await logAudit('chantier.delete', id);
+  toast('Chantier supprimé.');
+};
+
+window.openChantierPayment = function(id){
+  document.getElementById('chantier-payment-id').value = id;
+  document.getElementById('chantier-payment-amount').value = '';
+  document.getElementById('chantier-payment-note').value = '';
+  openModal('modal-chantier-payment');
+};
+
+document.getElementById('save-chantier-payment-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('chantier-payment-id').value;
+  const c = cache.chantierWorks.find(x=>x.id===id);
+  if(!c) return;
+  const amount = Number(document.getElementById('chantier-payment-amount').value)||0;
+  if(!amount){ toast('Le montant est requis.', 'danger'); return; }
+  const note = document.getElementById('chantier-payment-note').value.trim();
+  try{
+    const newPaid = (Number(c.paidAmount)||0) + amount;
+    await db.collection('chantierWorks').doc(id).update({paidAmount: newPaid, updatedAt: firebase.firestore.FieldValue.serverTimestamp()});
+    await db.collection('expenses').add({ category:'Chantier', amount, note:`Chantier — ${c.title}${note?' — '+note:''}`, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection('cashTransactions').add({ type:'OUT', amount, mode:'Espèces', register:'general', note:`Chantier — ${c.title}${note?' — '+note:''}`, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await logAudit('chantier.payment', `${c.title} — ${fmtMoney(amount)}`);
+    closeModal('modal-chantier-payment');
+    toast('Paiement enregistré. Dépense et caisse mises à jour.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
 function renderGeneralStock(){
   const tbody = document.getElementById('genstock-tbody');
   if(!cache.generalStock.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun article enregistré.</td></tr>'; return; }
@@ -3524,6 +4302,9 @@ const REPORT_CARDS = [
   {key:'salaires',    icon:'💵', title:'Salaires',     desc:'Masse salariale du mois'},
   {key:'charges',     icon:'⚡', title:'Charges',      desc:'Charges fixes et taxes'},
   {key:'personnel',   icon:'🔑', title:'Personnel',    desc:'Liste des employés'},
+  {key:'chantier',    icon:'🏗️', title:'Chantier',     desc:'Avancement et paiements'},
+  {key:'approvisionnement', icon:'🚚', title:'Approv.', desc:'Mouvements de stock'},
+  {key:'commercial',  icon:'🏢', title:'Commercial B2B', desc:'Entreprises et formules'},
 ];
 
 function renderRapports(){
@@ -3550,8 +4331,12 @@ async function computeMonthlyAggregates(){
   ]);
   const moves = snap.docs.map(d=>d.data());
   const byRegister = {};
-  let totalIn=0, totalOut=0;
+  let totalIn=0, totalOut=0, injectionTotal=0;
   moves.forEach(mv=>{
+    if(mv.isInjection){
+      injectionTotal += (mv.type==='IN'?(mv.amount||0):-(mv.amount||0));
+      return; // les apports propriétaire ne comptent pas dans l'exploitation
+    }
     const reg = mv.register || 'général';
     byRegister[reg] = byRegister[reg] || {in:0,out:0};
     if(mv.type==='IN'){ byRegister[reg].in += mv.amount||0; totalIn += mv.amount||0; }
@@ -3566,7 +4351,7 @@ async function computeMonthlyAggregates(){
   const key = monthKey(rapportMonth);
   const paidPayroll = cache.payroll.filter(p=>p.month===key && p.status==='paye').reduce((s,p)=>s+(p.amount||0),0);
   return {
-    moves, byRegister, totalIn, totalOut, expByCat, expenses: expSnap.docs.map(d=>d.data()),
+    moves, byRegister, totalIn, totalOut, injectionTotal, expByCat, expenses: expSnap.docs.map(d=>d.data()),
     resasOut, nights, occMonthRate, daysInMonth,
     tickets: ticketSnap.docs.map(d=>d.data()),
     purchaseOrders: poSnap.docs.map(d=>d.data()),
@@ -3581,13 +4366,15 @@ async function buildReportText(key){
   const header = `DOMAINE MONT-REPOS — KRIBI\n${'='.repeat(38)}\nPériode : ${monthLabel(rapportMonth)}\nGénéré le : ${new Date().toLocaleDateString('fr-FR')}\n${'='.repeat(38)}\n\n`;
 
   if(key==='synthese'){
-    return header + `SYNTHÈSE GÉNÉRALE\n\n` + fmtLines([
-      ['Total encaissé', fmtMoney(d.totalIn)],
-      ['Total dépensé', fmtMoney(d.totalOut)],
-      ['Résultat net', fmtMoney(d.totalIn-d.totalOut)],
+    return header + `SYNTHÈSE GÉNÉRALE — EXPLOITATION\n(hors apports propriétaire, comptabilisés séparément ci-dessous)\n\n` + fmtLines([
+      ['Total encaissé (exploitation)', fmtMoney(d.totalIn)],
+      ['Total dépensé (exploitation)', fmtMoney(d.totalOut)],
+      ['Résultat net exploitation', fmtMoney(d.totalIn-d.totalOut)],
       ['Occupation du mois', d.occMonthRate+'%'],
       ['Nuits vendues', String(d.nights)],
-    ]);
+    ]) + `\n\nAPPORTS PROPRIÉTAIRE (hors exploitation)\n\n` + fmtLines([
+      ['Solde net des apports ce mois', fmtMoney(d.injectionTotal)],
+    ]) + `\n(Ces sommes ne sont pas comptées dans le résultat d'exploitation ci-dessus — elles servent à distinguer l'argent injecté par Mme Duval des recettes réelles de l'hôtel.)\n`;
   }
   if(key==='caisse'){
     let t = header + `CAISSE — PAR REGISTRE\n\n`;
@@ -3679,6 +4466,43 @@ async function buildReportText(key){
   if(key==='personnel'){
     let t = header + `PERSONNEL (${hrEmployees().length})\n\n`;
     hrEmployees().forEach(e=>{ t += `${e.name.padEnd(24,' ')}${e.role||''} — ${e.status==='ACTIVE'?'Actif':e.status==='LEAVE'?'En congé':'Inactif'}\n`; });
+    return t;
+  }
+  if(key==='chantier'){
+    const totalEngaged = cache.chantierWorks.reduce((s,c)=>s+(Number(c.totalCost)||0),0);
+    const totalPaid = cache.chantierWorks.reduce((s,c)=>s+(Number(c.paidAmount)||0),0);
+    let t = header + `CHANTIER — VUE D'ENSEMBLE\n\n` + fmtLines([
+      ['Total engagé', fmtMoney(totalEngaged)],
+      ['Total payé', fmtMoney(totalPaid)],
+      ['Total restant', fmtMoney(totalEngaged-totalPaid)],
+    ]) + `\n\nDétail par lot (${cache.chantierWorks.length}) :\n`;
+    cache.chantierWorks.forEach(c=>{
+      const remaining = (Number(c.totalCost)||0)-(Number(c.paidAmount)||0);
+      t += `${(c.title||'').padEnd(30,' ')}${(c.trade||'').padEnd(18,' ')}${CHANTIER_STATUS_LABEL[c.status]||c.status} — payé ${fmtMoney(c.paidAmount)} / restant ${fmtMoney(remaining)}\n`;
+    });
+    if(!cache.chantierWorks.length) t += 'Aucun chantier enregistré.\n';
+    return t;
+  }
+  if(key==='approvisionnement'){
+    const receptions = cache.supplyMovements.filter(m=>m.type==='RECEPTION');
+    const distributions = cache.supplyMovements.filter(m=>m.type==='DISTRIBUTION');
+    let t = header + `APPROVISIONNEMENT\n\n` + fmtLines([
+      ['Réceptions enregistrées', String(receptions.length)],
+      ['Distributions enregistrées', String(distributions.length)],
+    ]) + `\n\nDerniers mouvements :\n`;
+    cache.supplyMovements.slice(0,50).forEach(m=>{
+      t += `${(m.date||'').padEnd(12,' ')}${m.type==='RECEPTION'?'Réception':'Distribution'.padEnd(12,' ')} — ${m.itemName} (${m.qty} ${m.unit||''})${m.department?' → '+m.department:''}\n`;
+    });
+    if(!cache.supplyMovements.length) t += 'Aucun mouvement enregistré.\n';
+    return t;
+  }
+  if(key==='commercial'){
+    let t = header + `COMMERCIAL B2B\n\n` + `Entreprises (${cache.companies.length}) :\n`;
+    cache.companies.forEach(c=>{ t += `${c.name.padEnd(28,' ')}${(c.sector||'').padEnd(16,' ')}Réduction ${c.discountPercent||0}% — CA cumulé ${fmtMoney(companyRevenue(c.id))}\n`; });
+    if(!cache.companies.length) t += 'Aucune entreprise enregistrée.\n';
+    t += `\nFormules / Événements (${cache.companyEvents.length}) :\n`;
+    cache.companyEvents.forEach(e=>{ t += `${(e.title||'').padEnd(30,' ')}${(e.type||'').padEnd(20,' ')}${e.eventDate||''} — ${EVENT_STATUS_LABEL[e.status]||e.status} — ${fmtMoney(e.budget)}\n`; });
+    if(!cache.companyEvents.length) t += 'Aucune formule / événement enregistré.\n';
     return t;
   }
   return header + 'Rapport indisponible.';
@@ -4237,7 +5061,7 @@ function renderMenu(){
   tbody.innerHTML = cache.menuItems.map(m=>`
     <tr>
       <td>${m.name}</td><td>${m.category}</td><td>${fmtMoney(m.price)}</td>
-      <td>${m.station==='bar'?'Bar':'Cuisine'}</td>
+      <td>${m.station==='bar'?'Bar':m.station==='pizzeria'?'Pizzeria':'Cuisine'}</td>
       <td><button class="btn btn-sm btn-ghost" onclick="editMenuItem('${m.id}')">✎</button></td>
     </tr>`).join('');
 }
@@ -4388,7 +5212,8 @@ window.markServed = function(orderId, idx){ updateOrderItemStatus(orderId, idx, 
 function renderKds(){
   const cuisineEl = document.getElementById('kds-cuisine-list');
   const barEl = document.getElementById('kds-bar-list');
-  const cuisineCards = [], barCards = [];
+  const pizzeriaEl = document.getElementById('kds-pizzeria-list');
+  const cuisineCards = [], barCards = [], pizzeriaCards = [];
   cache.orders.forEach(o=>{
     (o.items||[]).forEach((it,idx)=>{
       if(!['NEW','PREPARING'].includes(it.status)) return;
@@ -4397,11 +5222,14 @@ function renderKds(){
         <div class="ktable">Table ${roomFreeText(o.tableId)} · <span class="tag tag-${it.status==='NEW'?'pending':'reserved'}">${ORDER_ITEM_STATUS_LABEL[it.status]}</span></div>
         <button class="btn btn-sm btn-dark" onclick="advanceKitchenItem('${o.id}', ${idx})">${it.status==='NEW' ? 'Commencer' : 'Marquer prêt'}</button>
       </div>`;
-      if(it.station==='bar') barCards.push(card); else cuisineCards.push(card);
+      if(it.station==='bar') barCards.push(card);
+      else if(it.station==='pizzeria') pizzeriaCards.push(card);
+      else cuisineCards.push(card);
     });
   });
   cuisineEl.innerHTML = cuisineCards.join('') || '<div class="empty-state">Aucune commande en attente.</div>';
   barEl.innerHTML = barCards.join('') || '<div class="empty-state">Aucune commande en attente.</div>';
+  if(pizzeriaEl) pizzeriaEl.innerHTML = pizzeriaCards.join('') || '<div class="empty-state">Aucune commande en attente.</div>';
 }
 
 function renderOrders(){
@@ -4419,7 +5247,10 @@ function renderOrders(){
       </div>`).join('');
     return `<div class="order-card">
       <div class="ohead"><h4>Table ${roomFreeText(o.tableId)}</h4>
-        <button class="btn btn-sm btn-coral" onclick="closeOrder('${o.id}')">Encaisser & clôturer (${fmtMoney(total)})</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-ghost" onclick="invoiceFromOrder('${o.id}')">Facturer</button>
+          <button class="btn btn-sm btn-coral" onclick="closeOrder('${o.id}')">Encaisser & clôturer (${fmtMoney(total)})</button>
+        </div>
       </div>
       ${lines}
     </div>`;
@@ -4691,6 +5522,23 @@ window.invoiceFromReservation = function(resaId){
   invoiceLineRows = [{category:'Hébergement', description:`Séjour ${roomName(r.roomId)} — ${nights} nuit${nights>1?'s':''}`, qty:nights, unitPrice:r.rate||0}];
   renderInvoiceLineRows();
   openModal('modal-invoice');
+};
+
+window.invoiceFromOrder = function(orderId){
+  const o = cache.orders.find(x=>x.id===orderId);
+  if(!o) return;
+  document.getElementById('inv-client-name').value = `Table ${roomFreeText(o.tableId)}`;
+  document.getElementById('inv-client-phone').value = '';
+  document.getElementById('inv-ir').value='0';
+  document.getElementById('inv-payment').value='Espèces';
+  const stationCategory = st => st==='bar' ? 'Bar' : (st==='pizzeria' ? 'Restaurant' : 'Restaurant');
+  invoiceLineRows = (o.items||[]).filter(it=>it.status!=='CANCELLED').map(it=>({
+    category: stationCategory(it.station), description: it.name, qty: it.qty, unitPrice: it.price||0
+  }));
+  if(!invoiceLineRows.length) invoiceLineRows = [{category:'Restaurant', description:'', qty:1, unitPrice:0}];
+  renderInvoiceLineRows();
+  openModal('modal-invoice');
+  toast('Ligne pré-remplie depuis la table. Modifiez le nom du client si besoin (entreprise, particulier...).');
 };
 
 document.getElementById('save-invoice-btn').addEventListener('click', async ()=>{
