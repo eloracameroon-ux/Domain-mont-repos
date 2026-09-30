@@ -328,6 +328,35 @@ tr:last-child td{border-bottom:none;}
           <div id="guests-list"><div class="empty-state">Chargement…</div></div>
         </section>
 
+        <section class="section" id="section-commercial">
+          <div class="panel">
+            <div class="panel-body" style="background:linear-gradient(135deg,var(--ocean-deep),var(--ocean-deeper));border-radius:12px;color:#fff;">
+              <div style="font-size:11px;opacity:.7;letter-spacing:1px;text-transform:uppercase;">Domaine Mont-Repos — Commercial B2B</div>
+              <div id="commercial-total" style="font-size:24px;font-weight:800;margin-top:2px;">0 FCFA</div>
+              <div style="font-size:12px;opacity:.8;">Valeur des formules / événements à venir</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+            <button class="btn btn-sm commercial-tab-btn active" data-tab="companies">🏢 Entreprises</button>
+            <button class="btn btn-sm commercial-tab-btn" data-tab="events">🎉 Formules / Événements</button>
+          </div>
+
+          <div id="commercial-tab-companies">
+            <button class="btn btn-dark" style="width:100%;margin-bottom:12px;" id="add-company-btn">+ Nouvelle entreprise</button>
+            <div id="companies-list"><div class="empty-state">Chargement…</div></div>
+          </div>
+
+          <div id="commercial-tab-events" style="display:none;">
+            <button class="btn btn-dark" style="width:100%;margin-bottom:12px;" id="add-event-btn">+ Nouvelle formule / événement</button>
+            <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+              <button class="btn btn-sm event-filter-btn active" data-filter="UPCOMING">À venir</button>
+              <button class="btn btn-sm event-filter-btn" data-filter="DONE">Réalisés</button>
+              <button class="btn btn-sm event-filter-btn" data-filter="ALL">Tous</button>
+            </div>
+            <div id="events-list"><div class="empty-state">Chargement…</div></div>
+          </div>
+        </section>
+
         <section class="section" id="section-restaurant">
           <div class="panel">
             <div class="panel-head">
@@ -359,6 +388,23 @@ tr:last-child td{border-bottom:none;}
               </table>
             </div>
           </div>
+        </section>
+
+        <section class="section" id="section-brunch">
+          <div class="panel">
+            <div class="panel-body" style="background:linear-gradient(135deg,var(--gold-light),var(--coral));border-radius:12px;color:#2a1f08;">
+              <div style="font-size:11px;opacity:.75;letter-spacing:1px;text-transform:uppercase;">Domaine Mont-Repos — Brunch du dimanche</div>
+              <div id="brunch-total" style="font-size:24px;font-weight:800;margin-top:2px;">0 FCFA</div>
+              <div style="font-size:12px;opacity:.85;">Recette attendue (réservations confirmées, à venir)</div>
+            </div>
+          </div>
+          <button class="btn btn-dark" style="width:100%;margin-bottom:12px;" id="add-brunch-btn">+ Nouvelle réservation brunch</button>
+          <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;">
+            <button class="btn btn-sm brunch-filter-btn active" data-filter="UPCOMING">À venir</button>
+            <button class="btn btn-sm brunch-filter-btn" data-filter="DONE">Servis</button>
+            <button class="btn btn-sm brunch-filter-btn" data-filter="ALL">Tous</button>
+          </div>
+          <div id="brunch-list"><div class="empty-state">Chargement…</div></div>
         </section>
 
         <section class="section" id="section-purchasing">
@@ -747,6 +793,10 @@ tr:last-child td{border-bottom:none;}
     <div class="grid-2">
       <div class="field"><label>Personnes</label><input type="number" id="resa-guests-count" value="2"></div>
       <div class="field"><label>Tarif/nuit (FCFA)</label><input type="number" id="resa-rate"></div>
+    </div>
+    <div class="field"><label>Entreprise B2B liée (réduction, optionnel)</label>
+      <select id="resa-company"><option value="">— Aucune —</option></select>
+      <button class="btn btn-sm btn-ghost" type="button" id="resa-apply-discount-btn" style="margin-top:6px;">Appliquer la réduction au tarif</button>
     </div>
     <div class="grid-2">
       <div class="field"><label>Source</label>
@@ -1251,6 +1301,107 @@ tr:last-child td{border-bottom:none;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-company">
+  <div class="modal">
+    <h3 id="company-modal-title">Nouvelle entreprise</h3>
+    <input type="hidden" id="company-id">
+    <div class="field"><label>Nom de l'entreprise</label><input id="company-name" placeholder="Ex : Afriland First Bank"></div>
+    <div class="grid-2">
+      <div class="field"><label>Secteur</label>
+        <select id="company-sector"><option>Banque</option><option>Microfinance</option><option>Assurance</option><option>Port Autonome</option><option>Institution publique</option><option>Autre entreprise</option></select>
+      </div>
+      <div class="field"><label>Palier de réduction</label>
+        <select id="company-tier">
+          <option value="0">Standard — 0%</option>
+          <option value="5">Argent — 5%</option>
+          <option value="10">Or — 10%</option>
+          <option value="15">Platine — 15%</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Contact</label><input id="company-contact-name" placeholder="Nom du contact"></div>
+      <div class="field"><label>Téléphone</label><input id="company-contact-phone" placeholder="+237 6XX XXX XXX"></div>
+    </div>
+    <div class="field"><label>E-mail (optionnel)</label><input id="company-contact-email" placeholder="contact@entreprise.cm"></div>
+    <div class="field"><label>Notes</label><textarea id="company-notes" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;" placeholder="Historique, préférences, accords particuliers..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-company')">Annuler</button>
+      <button class="btn btn-dark" id="save-company-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-event">
+  <div class="modal">
+    <h3 id="event-modal-title">Nouvelle formule / événement</h3>
+    <input type="hidden" id="event-id">
+    <div class="field"><label>Titre</label><input id="event-title" placeholder="Ex : Séminaire annuel — Direction commerciale"></div>
+    <div class="grid-2">
+      <div class="field"><label>Entreprise liée (optionnel)</label>
+        <select id="event-company"><option value="">— Aucune / particulier —</option></select>
+      </div>
+      <div class="field"><label>Type de formule</label>
+        <select id="event-type">
+          <option>Team building</option>
+          <option>Anniversaire</option>
+          <option>Dîner d'affaires</option>
+          <option>Networking</option>
+          <option>Coworking / journée d'étude</option>
+          <option>Séminaire</option>
+          <option>Autre</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Date</label><input type="date" id="event-date"></div>
+      <div class="field"><label>Nombre de personnes</label><input type="number" id="event-pax" placeholder="0"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Budget estimé (FCFA)</label><input type="number" id="event-budget" placeholder="0"></div>
+      <div class="field"><label>Statut</label>
+        <select id="event-status"><option value="PROSPECT">Prospect</option><option value="CONFIRMED">Confirmé</option><option value="DONE">Réalisé</option><option value="CANCELLED">Annulé</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="event-notes" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;" placeholder="Salle, restauration, hébergement lié..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-event')">Annuler</button>
+      <button class="btn btn-dark" id="save-event-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-brunch">
+  <div class="modal">
+    <h3 id="brunch-modal-title">Nouvelle réservation brunch</h3>
+    <input type="hidden" id="brunch-id">
+    <div class="grid-2">
+      <div class="field"><label>Nom du client</label><input id="brunch-guest-name" placeholder="Nom et prénom"></div>
+      <div class="field"><label>Téléphone</label><input id="brunch-guest-phone" placeholder="+237 6XX XXX XXX"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Dimanche</label><input type="date" id="brunch-date"></div>
+      <div class="field"><label>Heure</label><input type="time" id="brunch-time" value="11:30"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Adultes</label><input type="number" id="brunch-adults" value="1"></div>
+      <div class="field"><label>Enfants</label><input type="number" id="brunch-children" value="0"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Prix adulte (FCFA)</label><input type="number" id="brunch-price-adult" placeholder="0"></div>
+      <div class="field"><label>Prix enfant (FCFA)</label><input type="number" id="brunch-price-child" placeholder="0"></div>
+    </div>
+    <div class="field"><label>Statut</label>
+      <select id="brunch-status"><option value="CONFIRMED">Confirmé</option><option value="PENDING">En attente</option><option value="DONE">Servi / payé</option><option value="CANCELLED">Annulé</option></select>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="brunch-notes" rows="2" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;" placeholder="Table, allergies, occasion..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-brunch')">Annuler</button>
+      <button class="btn btn-dark" id="save-brunch-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <script>
@@ -1274,18 +1425,18 @@ const db = firebase.firestore();
 // Sans elle, l'app a simplement besoin d'une connexion active pour lire/écrire.
 
 const ROLES = {
-  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
-  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
-  RECEPTION:          { label:"Réception",      nav:["dashboard","rooms","reservations","guests","cash","facturation"] },
-  ACCOUNTANT:         { label:"Comptabilité",   nav:["dashboard","cash","reservations","purchasing","facturation","depenses","charges","salaires","rapports"] },
+  OWNER:              { label:"Propriétaire",   nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
+  DIRECTOR:           { label:"Directeur",      nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] },
+  RECEPTION:          { label:"Réception",      nav:["dashboard","rooms","reservations","guests","brunch","cash","facturation"] },
+  ACCOUNTANT:         { label:"Comptabilité",   nav:["dashboard","cash","reservations","commercial","purchasing","facturation","depenses","charges","salaires","rapports"] },
   HOUSEKEEPING:       { label:"Housekeeping",   nav:["housekeeping","maintenance","besoins"] },
   MAINTENANCE:        { label:"Maintenance",    nav:["maintenance","rooms","besoins"] },
-  MARKETING:          { label:"Marketing",      nav:["dashboard","guests"] },
+  MARKETING:          { label:"Marketing",      nav:["dashboard","guests","commercial"] },
   KITCHEN:            { label:"Cuisine",        nav:["kitchen","purchasing","stock","besoins"] },
-  WAITER:             { label:"Serveur",        nav:["restaurant"] },
-  RESTAURANT_MANAGER: { label:"Resp. Restaurant", nav:["dashboard","restaurant","kitchen","purchasing","besoins","planning","cash"] },
+  WAITER:             { label:"Serveur",        nav:["restaurant","brunch"] },
+  RESTAURANT_MANAGER: { label:"Resp. Restaurant", nav:["dashboard","restaurant","brunch","kitchen","purchasing","besoins","planning","cash"] },
   BAR_MANAGER:        { label:"Resp. Bar",      nav:["restaurant","bar","besoins","cash"] },
-  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","restaurant","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] }
+  ADMIN:              { label:"Administrateur", nav:["dashboard","rooms","reservations","guests","commercial","restaurant","brunch","kitchen","bar","purchasing","besoins","stock","employees","planning","cash","facturation","depenses","charges","salaires","maintenance","housekeeping","rapports","admin","audit"] }
 };
 
 const NAV_ITEMS = [
@@ -1293,7 +1444,9 @@ const NAV_ITEMS = [
   {key:"rooms",         label:"Hébergt.",    icon:"🛏️"},
   {key:"reservations",  label:"Réserv.",     icon:"📋"},
   {key:"guests",        label:"Clients",     icon:"👥"},
+  {key:"commercial",    label:"Commercial",  icon:"🏢"},
   {key:"restaurant",    label:"Restaurant",  icon:"🍽️"},
+  {key:"brunch",        label:"Brunch",      icon:"🥐"},
   {key:"kitchen",       label:"Cuisine",     icon:"🍳"},
   {key:"bar",           label:"Bar",         icon:"🍹"},
   {key:"purchasing",    label:"Achats",      icon:"🛒"},
@@ -1315,7 +1468,7 @@ const NAV_ITEMS = [
 
 let currentUser = null;
 let currentProfile = null;
-let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[], invoices:[], barStock:[], needs:[] };
+let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[], invoices:[], barStock:[], needs:[], companies:[], companyEvents:[], brunchBookings:[] };
 let invoiceLineRows = [];
 let unsubscribers = [];
 let planningUnsub = null;
@@ -1678,6 +1831,18 @@ function attachListeners(){
     cache.invoices = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderInvoices();
   }, err=>console.warn('invoices listener', err)));
+  unsubscribers.push(db.collection('companies').orderBy('name').onSnapshot(snap=>{
+    cache.companies = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderCompanies(); renderCompanyOptions();
+  }, err=>console.warn('companies listener', err)));
+  unsubscribers.push(db.collection('companyEvents').orderBy('eventDate','desc').onSnapshot(snap=>{
+    cache.companyEvents = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderEvents(); renderCommercialTotal();
+  }, err=>console.warn('companyEvents listener', err)));
+  unsubscribers.push(db.collection('brunchBookings').orderBy('brunchDate','desc').onSnapshot(snap=>{
+    cache.brunchBookings = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderBrunch();
+  }, err=>console.warn('brunchBookings listener', err)));
   subscribePlanningWeek();
 }
 
@@ -1876,10 +2041,33 @@ document.getElementById('save-room-btn').addEventListener('click', async ()=>{
 function renderRoomOptions(){
   const sel = document.getElementById('resa-room');
   const sel2 = document.getElementById('ticket-room');
-  const opts = cache.rooms.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+  const opts = cache.rooms.map(r=>`<option value="${r.id}" data-price="${r.price||0}">${r.name}</option>`).join('');
   if(sel) sel.innerHTML = opts;
   if(sel2) sel2.innerHTML = opts;
 }
+
+function renderCompanyOptions(){
+  const activeCompanies = cache.companies.filter(c=>c.active!==false);
+  const opts = '<option value="">— Aucune —</option>' + activeCompanies.map(c=>`<option value="${c.id}" data-discount="${c.discountPercent||0}">${c.name} (${c.discountPercent||0}%)</option>`).join('');
+  const selResa = document.getElementById('resa-company');
+  if(selResa) selResa.innerHTML = opts;
+  const selEvent = document.getElementById('event-company');
+  if(selEvent) selEvent.innerHTML = '<option value="">— Aucune / particulier —</option>' + activeCompanies.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+document.getElementById('resa-apply-discount-btn').addEventListener('click', ()=>{
+  const roomSel = document.getElementById('resa-room');
+  const opt = roomSel.options[roomSel.selectedIndex];
+  const basePrice = opt ? Number(opt.dataset.price)||0 : 0;
+  const compSel = document.getElementById('resa-company');
+  const compOpt = compSel.options[compSel.selectedIndex];
+  const discount = compOpt ? Number(compOpt.dataset.discount)||0 : 0;
+  if(!basePrice){ toast('Choisissez une unité avec un tarif défini.', 'danger'); return; }
+  if(!discount){ toast('Choisissez une entreprise avec une réduction, ou définissez son palier.', 'danger'); return; }
+  const discounted = Math.round(basePrice * (1 - discount/100));
+  document.getElementById('resa-rate').value = discounted;
+  toast(`Tarif ajusté : ${fmtMoney(discounted)} (−${discount}%).`);
+});
 
 const RESA_STATUS_LABEL = {PENDING:'En attente',CONFIRMED:'Confirmée',CHECKED_IN:'Check-in fait',CHECKED_OUT:'Check-out fait',CANCELLED:'Annulée',NO_SHOW:'No-show'};
 function statusLabel(s){ return RESA_STATUS_LABEL[s] || s || '—'; }
@@ -1937,6 +2125,8 @@ document.getElementById('add-resa-btn').addEventListener('click', ()=>{
   document.getElementById('resa-notes').value='';
   document.getElementById('resa-conflict-warning').style.display='none';
   renderRoomOptions();
+  renderCompanyOptions();
+  document.getElementById('resa-company').value = '';
   openModal('modal-resa');
 });
 
@@ -1956,6 +2146,8 @@ function editResa(id){
   document.getElementById('resa-status').value = r.status||'PENDING';
   document.getElementById('resa-notes').value = r.notes||'';
   document.getElementById('resa-conflict-warning').style.display='none';
+  renderCompanyOptions();
+  document.getElementById('resa-company').value = r.companyId || '';
   openModal('modal-resa');
 }
 window.editResa = editResa;
@@ -1980,15 +2172,19 @@ document.getElementById('save-resa-btn').addEventListener('click', async ()=>{
     document.getElementById('resa-conflict-warning').style.display='block';
     return;
   }
+  const companyId = document.getElementById('resa-company').value || null;
+  const company = companyId ? cache.companies.find(c=>c.id===companyId) : null;
   const data = {
     guestName: guestNameVal,
     guestPhone: document.getElementById('resa-guest-phone').value.trim(),
     roomId, checkIn, checkOut,
     guestsCount: Number(document.getElementById('resa-guests-count').value)||1,
     rate: Number(document.getElementById('resa-rate').value)||0,
-    source: document.getElementById('resa-source').value,
+    source: company ? 'Corporate' : document.getElementById('resa-source').value,
     status: document.getElementById('resa-status').value,
     notes: document.getElementById('resa-notes').value,
+    companyId: companyId,
+    companyName: company ? company.name : null,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   try{
@@ -2691,6 +2887,369 @@ window.deleteNeed = async function(id){
   await db.collection('needs').doc(id).delete();
   await logAudit('need.delete', id);
   toast('Besoin supprimé.');
+};
+
+// ===================== COMMERCIAL B2B (Entreprises + Formules/Événements) =====================
+
+document.querySelectorAll('.commercial-tab-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.commercial-tab-btn').forEach(x=>x.classList.toggle('active', x===b));
+    document.getElementById('commercial-tab-companies').style.display = b.dataset.tab==='companies' ? '' : 'none';
+    document.getElementById('commercial-tab-events').style.display = b.dataset.tab==='events' ? '' : 'none';
+  });
+});
+
+function companyRevenue(companyId){
+  return cache.reservations
+    .filter(r=>r.companyId===companyId && r.status==='CHECKED_OUT')
+    .reduce((sum,r)=>{
+      const nights = Math.max(1, Math.round((new Date(r.checkOut)-new Date(r.checkIn))/86400000));
+      return sum + (Number(r.rate)||0)*nights;
+    }, 0);
+}
+
+function renderCommercialTotal(){
+  const total = cache.companyEvents
+    .filter(e=>['PROSPECT','CONFIRMED'].includes(e.status) && e.eventDate >= todayStr())
+    .reduce((s,e)=>s+(Number(e.budget)||0),0);
+  const el = document.getElementById('commercial-total');
+  if(el) el.textContent = fmtMoney(total);
+}
+
+const COMPANY_SECTOR_ICON = {'Banque':'🏦','Microfinance':'💳','Assurance':'🛡️','Port Autonome':'⚓','Institution publique':'🏛️'};
+function renderCompanies(){
+  const wrap = document.getElementById('companies-list');
+  if(!wrap) return;
+  if(!cache.companies.length){ wrap.innerHTML = '<div class="empty-state">Aucune entreprise enregistrée.</div>'; return; }
+  wrap.innerHTML = cache.companies.map(c=>`
+    <div class="panel" style="margin-bottom:10px;">
+      <div class="panel-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:800;">${COMPANY_SECTOR_ICON[c.sector]||'🏢'} ${c.name}</div>
+            <div style="font-size:12px;color:var(--ink-soft);">${c.sector||'—'} · ${c.contactName||'sans contact'} ${c.contactPhone?'· '+c.contactPhone:''}</div>
+            ${c.active===false ? `<span class="tag tag-cancelled" style="margin-top:6px;display:inline-block;">Inactif</span>` : ''}
+          </div>
+          <div style="text-align:right;">
+            <div class="tag tag-confirmed">Réduction ${c.discountPercent||0}%</div>
+            <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">CA cumulé : ${fmtMoney(companyRevenue(c.id))}</div>
+          </div>
+        </div>
+        ${c.notes ? `<div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">${c.notes}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          ${c.contactPhone ? `<button class="btn btn-sm" onclick="sendWhatsAppText('${c.contactPhone}', 'Bonjour ${(c.contactName||'').replace(/'/g,"\\'")}, ici le Domaine Mont-Repos. ')">💬 WhatsApp</button>` : ''}
+          <button class="btn btn-sm btn-ghost" onclick="editCompany('${c.id}')">Modifier</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteCompany('${c.id}')">Suppr.</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('add-company-btn').addEventListener('click', ()=>{
+  document.getElementById('company-modal-title').textContent = 'Nouvelle entreprise';
+  document.getElementById('company-id').value = '';
+  document.getElementById('company-name').value = '';
+  document.getElementById('company-sector').value = 'Banque';
+  document.getElementById('company-tier').value = '0';
+  document.getElementById('company-contact-name').value = '';
+  document.getElementById('company-contact-phone').value = '';
+  document.getElementById('company-contact-email').value = '';
+  document.getElementById('company-notes').value = '';
+  openModal('modal-company');
+});
+
+window.editCompany = function(id){
+  const c = cache.companies.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('company-modal-title').textContent = 'Modifier l\'entreprise';
+  document.getElementById('company-id').value = c.id;
+  document.getElementById('company-name').value = c.name||'';
+  document.getElementById('company-sector').value = c.sector||'Banque';
+  document.getElementById('company-tier').value = String(c.discountPercent||0);
+  document.getElementById('company-contact-name').value = c.contactName||'';
+  document.getElementById('company-contact-phone').value = c.contactPhone||'';
+  document.getElementById('company-contact-email').value = c.contactEmail||'';
+  document.getElementById('company-notes').value = c.notes||'';
+  openModal('modal-company');
+};
+
+document.getElementById('save-company-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('company-id').value;
+  const name = document.getElementById('company-name').value.trim();
+  if(!name){ toast('Le nom de l\'entreprise est requis.', 'danger'); return; }
+  const data = {
+    name,
+    sector: document.getElementById('company-sector').value,
+    discountPercent: Number(document.getElementById('company-tier').value)||0,
+    contactName: document.getElementById('company-contact-name').value.trim(),
+    contactPhone: document.getElementById('company-contact-phone').value.trim(),
+    contactEmail: document.getElementById('company-contact-email').value.trim(),
+    notes: document.getElementById('company-notes').value.trim(),
+    active: true,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){ await db.collection('companies').doc(id).update(data); await logAudit('company.update', name); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('companies').add(data); await logAudit('company.create', name); }
+    closeModal('modal-company');
+    toast('Entreprise enregistrée.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.deleteCompany = async function(id){
+  if(!confirm('Supprimer cette entreprise ? Les réservations et événements déjà liés resteront mais ne seront plus rattachés à jour.')) return;
+  await db.collection('companies').doc(id).delete();
+  await logAudit('company.delete', id);
+  toast('Entreprise supprimée.');
+};
+
+let eventFilter = 'UPCOMING';
+document.querySelectorAll('.event-filter-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    eventFilter = b.dataset.filter;
+    document.querySelectorAll('.event-filter-btn').forEach(x=>x.classList.toggle('active', x===b));
+    renderEvents();
+  });
+});
+
+const EVENT_STATUS_LABEL = {PROSPECT:'Prospect',CONFIRMED:'Confirmé',DONE:'Réalisé',CANCELLED:'Annulé'};
+const EVENT_STATUS_TAG = {PROSPECT:'tag-pending',CONFIRMED:'tag-confirmed',DONE:'tag-checked_out',CANCELLED:'tag-cancelled'};
+function renderEvents(){
+  const wrap = document.getElementById('events-list');
+  if(!wrap) return;
+  let list = cache.companyEvents;
+  if(eventFilter==='UPCOMING') list = list.filter(e=>e.eventDate>=todayStr() && !['DONE','CANCELLED'].includes(e.status));
+  if(eventFilter==='DONE') list = list.filter(e=>e.status==='DONE');
+  if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucune formule / événement dans cette liste.</div>'; return; }
+  wrap.innerHTML = list.map(e=>`
+    <div class="panel" style="margin-bottom:10px;">
+      <div class="panel-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:800;">${e.title}</div>
+            <div style="font-size:12px;color:var(--ink-soft);">${e.type||''} · ${e.eventDate||''} · ${e.pax||0} pers.${e.companyName?' · '+e.companyName:''}</div>
+          </div>
+          <div style="text-align:right;">
+            <span class="tag ${EVENT_STATUS_TAG[e.status]||''}">${EVENT_STATUS_LABEL[e.status]||e.status}</span>
+            <div style="font-weight:800;color:var(--ocean-deep);margin-top:4px;">${fmtMoney(e.budget)}</div>
+          </div>
+        </div>
+        ${e.notes ? `<div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">${e.notes}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-ghost" onclick="editEvent('${e.id}')">Modifier</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteEvent('${e.id}')">Suppr.</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('add-event-btn').addEventListener('click', ()=>{
+  document.getElementById('event-modal-title').textContent = 'Nouvelle formule / événement';
+  document.getElementById('event-id').value = '';
+  document.getElementById('event-title').value = '';
+  renderCompanyOptions();
+  document.getElementById('event-company').value = '';
+  document.getElementById('event-type').value = 'Team building';
+  document.getElementById('event-date').value = todayStr();
+  document.getElementById('event-pax').value = '';
+  document.getElementById('event-budget').value = '';
+  document.getElementById('event-status').value = 'PROSPECT';
+  document.getElementById('event-notes').value = '';
+  openModal('modal-event');
+});
+
+window.editEvent = function(id){
+  const e = cache.companyEvents.find(x=>x.id===id);
+  if(!e) return;
+  renderCompanyOptions();
+  document.getElementById('event-modal-title').textContent = 'Modifier la formule / événement';
+  document.getElementById('event-id').value = e.id;
+  document.getElementById('event-title').value = e.title||'';
+  document.getElementById('event-company').value = e.companyId||'';
+  document.getElementById('event-type').value = e.type||'Team building';
+  document.getElementById('event-date').value = e.eventDate||'';
+  document.getElementById('event-pax').value = e.pax||'';
+  document.getElementById('event-budget').value = e.budget||'';
+  document.getElementById('event-status').value = e.status||'PROSPECT';
+  document.getElementById('event-notes').value = e.notes||'';
+  openModal('modal-event');
+};
+
+document.getElementById('save-event-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('event-id').value;
+  const title = document.getElementById('event-title').value.trim();
+  if(!title){ toast('Le titre est requis.', 'danger'); return; }
+  const companyId = document.getElementById('event-company').value || null;
+  const company = companyId ? cache.companies.find(c=>c.id===companyId) : null;
+  const data = {
+    title,
+    companyId, companyName: company ? company.name : null,
+    type: document.getElementById('event-type').value,
+    eventDate: document.getElementById('event-date').value,
+    pax: Number(document.getElementById('event-pax').value)||0,
+    budget: Number(document.getElementById('event-budget').value)||0,
+    status: document.getElementById('event-status').value,
+    notes: document.getElementById('event-notes').value.trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){ await db.collection('companyEvents').doc(id).update(data); await logAudit('event.update', title); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('companyEvents').add(data); await logAudit('event.create', title); }
+    closeModal('modal-event');
+    toast('Formule / événement enregistré.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.deleteEvent = async function(id){
+  if(!confirm('Supprimer cette formule / événement ?')) return;
+  await db.collection('companyEvents').doc(id).delete();
+  await logAudit('event.delete', id);
+  toast('Formule / événement supprimé.');
+};
+
+// ===================== BRUNCH DU DIMANCHE =====================
+
+let brunchFilter = 'UPCOMING';
+document.querySelectorAll('.brunch-filter-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    brunchFilter = b.dataset.filter;
+    document.querySelectorAll('.brunch-filter-btn').forEach(x=>x.classList.toggle('active', x===b));
+    renderBrunch();
+  });
+});
+
+function brunchAmount(b){
+  return (Number(b.adults)||0)*(Number(b.priceAdult)||0) + (Number(b.children)||0)*(Number(b.priceChild)||0);
+}
+
+const BRUNCH_STATUS_LABEL = {CONFIRMED:'Confirmé',PENDING:'En attente',DONE:'Servi / payé',CANCELLED:'Annulé'};
+const BRUNCH_STATUS_TAG = {CONFIRMED:'tag-confirmed',PENDING:'tag-pending',DONE:'tag-checked_out',CANCELLED:'tag-cancelled'};
+function renderBrunch(){
+  const wrap = document.getElementById('brunch-list');
+  if(!wrap) return;
+  const total = cache.brunchBookings
+    .filter(b=>['CONFIRMED','PENDING'].includes(b.status) && b.brunchDate>=todayStr())
+    .reduce((s,b)=>s+brunchAmount(b),0);
+  const totalEl = document.getElementById('brunch-total');
+  if(totalEl) totalEl.textContent = fmtMoney(total);
+
+  let list = cache.brunchBookings;
+  if(brunchFilter==='UPCOMING') list = list.filter(b=>b.brunchDate>=todayStr() && b.status!=='DONE' && b.status!=='CANCELLED');
+  if(brunchFilter==='DONE') list = list.filter(b=>b.status==='DONE');
+  if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucune réservation brunch dans cette liste.</div>'; return; }
+  wrap.innerHTML = list.map(b=>`
+    <div class="panel" style="margin-bottom:10px;">
+      <div class="panel-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:800;">${b.guestName||'—'}</div>
+            <div style="font-size:12px;color:var(--ink-soft);">${b.brunchDate||''} ${b.brunchTime||''} · ${b.adults||0} adulte(s), ${b.children||0} enfant(s)</div>
+          </div>
+          <div style="text-align:right;">
+            <span class="tag ${BRUNCH_STATUS_TAG[b.status]||''}">${BRUNCH_STATUS_LABEL[b.status]||b.status}</span>
+            <div style="font-weight:800;color:var(--ocean-deep);margin-top:4px;">${fmtMoney(brunchAmount(b))}</div>
+          </div>
+        </div>
+        ${b.notes ? `<div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">${b.notes}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          ${b.guestPhone ? `<button class="btn btn-sm" onclick="sendWhatsAppText('${b.guestPhone}', 'Bonjour ${(b.guestName||'').replace(/'/g,"\\'")}, votre réservation pour le Brunch du Domaine Mont-Repos le ${b.brunchDate} à ${b.brunchTime} est bien enregistrée pour ${(Number(b.adults)||0)+(Number(b.children)||0)} personne(s). À dimanche !')">💬 Confirmer WhatsApp</button>` : ''}
+          ${b.status!=='DONE' ? `<button class="btn btn-sm btn-dark" onclick="markBrunchDone('${b.id}')">✓ Marquer servi / payé</button>` : ''}
+          <button class="btn btn-sm btn-ghost" onclick="editBrunch('${b.id}')">Modifier</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteBrunch('${b.id}')">Suppr.</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function nextSunday(){
+  const d = new Date();
+  const day = d.getDay();
+  const add = day===0 ? 0 : 7-day;
+  d.setDate(d.getDate()+add);
+  return dateStr(d);
+}
+
+document.getElementById('add-brunch-btn').addEventListener('click', ()=>{
+  document.getElementById('brunch-modal-title').textContent = 'Nouvelle réservation brunch';
+  document.getElementById('brunch-id').value = '';
+  document.getElementById('brunch-guest-name').value = '';
+  document.getElementById('brunch-guest-phone').value = '';
+  document.getElementById('brunch-date').value = nextSunday();
+  document.getElementById('brunch-time').value = '11:30';
+  document.getElementById('brunch-adults').value = 1;
+  document.getElementById('brunch-children').value = 0;
+  document.getElementById('brunch-price-adult').value = '';
+  document.getElementById('brunch-price-child').value = '';
+  document.getElementById('brunch-status').value = 'CONFIRMED';
+  document.getElementById('brunch-notes').value = '';
+  openModal('modal-brunch');
+});
+
+window.editBrunch = function(id){
+  const b = cache.brunchBookings.find(x=>x.id===id);
+  if(!b) return;
+  document.getElementById('brunch-modal-title').textContent = 'Modifier la réservation brunch';
+  document.getElementById('brunch-id').value = b.id;
+  document.getElementById('brunch-guest-name').value = b.guestName||'';
+  document.getElementById('brunch-guest-phone').value = b.guestPhone||'';
+  document.getElementById('brunch-date').value = b.brunchDate||nextSunday();
+  document.getElementById('brunch-time').value = b.brunchTime||'11:30';
+  document.getElementById('brunch-adults').value = b.adults||1;
+  document.getElementById('brunch-children').value = b.children||0;
+  document.getElementById('brunch-price-adult').value = b.priceAdult||'';
+  document.getElementById('brunch-price-child').value = b.priceChild||'';
+  document.getElementById('brunch-status').value = b.status||'CONFIRMED';
+  document.getElementById('brunch-notes').value = b.notes||'';
+  openModal('modal-brunch');
+};
+
+document.getElementById('save-brunch-btn').addEventListener('click', async ()=>{
+  const id = document.getElementById('brunch-id').value;
+  const guestName = document.getElementById('brunch-guest-name').value.trim();
+  if(!guestName){ toast('Le nom du client est requis.', 'danger'); return; }
+  const data = {
+    guestName,
+    guestPhone: document.getElementById('brunch-guest-phone').value.trim(),
+    brunchDate: document.getElementById('brunch-date').value,
+    brunchTime: document.getElementById('brunch-time').value,
+    adults: Number(document.getElementById('brunch-adults').value)||0,
+    children: Number(document.getElementById('brunch-children').value)||0,
+    priceAdult: Number(document.getElementById('brunch-price-adult').value)||0,
+    priceChild: Number(document.getElementById('brunch-price-child').value)||0,
+    status: document.getElementById('brunch-status').value,
+    notes: document.getElementById('brunch-notes').value.trim(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    if(id){ await db.collection('brunchBookings').doc(id).update(data); await logAudit('brunch.update', guestName); }
+    else{ data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('brunchBookings').add(data); await logAudit('brunch.create', guestName); }
+    closeModal('modal-brunch');
+    toast('Réservation brunch enregistrée.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+});
+
+window.markBrunchDone = async function(id){
+  const b = cache.brunchBookings.find(x=>x.id===id);
+  if(!b) return;
+  try{
+    const amount = brunchAmount(b);
+    await db.collection('brunchBookings').doc(id).update({status:'DONE', servedAt: firebase.firestore.FieldValue.serverTimestamp()});
+    if(amount>0){
+      await db.collection('cashTransactions').add({ type:'IN', amount, mode:'Espèces', register:'restaurant', note:`Brunch — ${b.guestName}`, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+    await logAudit('brunch.done', `${b.guestName} — ${fmtMoney(amount)}`);
+    toast('Brunch marqué servi / payé. Caisse mise à jour.');
+  }catch(e){ toast('Erreur : '+e.message, 'danger'); }
+};
+
+window.deleteBrunch = async function(id){
+  if(!confirm('Supprimer cette réservation brunch ?')) return;
+  await db.collection('brunchBookings').doc(id).delete();
+  await logAudit('brunch.delete', id);
+  toast('Réservation brunch supprimée.');
 };
 
 function renderGeneralStock(){
