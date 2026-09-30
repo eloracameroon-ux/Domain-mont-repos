@@ -270,7 +270,26 @@ tr:last-child td{border-bottom:none;}
   <div class="content">
 
         <section class="section active" id="section-dashboard">
-          <div class="stat-grid" id="dash-stats"></div>
+          <div class="panel">
+            <div class="panel-head"><h3>Aujourd'hui</h3></div>
+            <div class="panel-body"><div class="stat-grid" id="dash-stats-today"></div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Hébergement</h3></div>
+            <div class="panel-body"><div class="stat-grid" id="dash-stats-rooms"></div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Restaurant, Bar & Commercial B2B</h3></div>
+            <div class="panel-body"><div class="stat-grid" id="dash-stats-fb"></div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Comptabilité & Chantier</h3></div>
+            <div class="panel-body"><div class="stat-grid" id="dash-stats-finance"></div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Stocks, Besoins & Maintenance</h3></div>
+            <div class="panel-body"><div class="stat-grid" id="dash-stats-ops"></div></div>
+          </div>
           <div class="panel">
             <div class="panel-head"><h3>Arrivées & départs du jour</h3></div>
             <div class="panel-body">
@@ -426,6 +445,9 @@ tr:last-child td{border-bottom:none;}
               <button class="btn btn-dark btn-sm" id="add-po-btn">+ Nouveau bon de commande</button>
             </div>
             <div class="panel-body">
+              <div class="field" style="margin-bottom:10px;"><label>Filtrer par service</label>
+                <select id="po-department-filter"><option value="">Tous les services</option></select>
+              </div>
               <div id="po-list" class="empty-state">Chargement…</div>
             </div>
           </div>
@@ -463,6 +485,9 @@ tr:last-child td{border-bottom:none;}
             <button class="btn btn-sm need-filter-btn" data-filter="BOUGHT">Achetés</button>
             <button class="btn btn-sm need-filter-btn" data-filter="ALL">Tous</button>
           </div>
+          <div class="field" style="margin-bottom:12px;"><label>Filtrer par service</label>
+            <select id="need-department-filter"><option value="">Tous les services</option></select>
+          </div>
           <div id="needs-list"><div class="empty-state">Chargement…</div></div>
         </section>
 
@@ -472,11 +497,16 @@ tr:last-child td{border-bottom:none;}
               <h3>Stock général</h3>
               <button class="btn btn-dark btn-sm" id="add-genstock-btn">+ Nouvel article</button>
             </div>
-            <div class="panel-body" style="overflow-x:auto;">
+            <div class="panel-body">
+              <div class="field" style="margin-bottom:10px;"><label>Filtrer par service</label>
+                <select id="genstock-department-filter"><option value="">Tous les services</option></select>
+              </div>
+              <div style="overflow-x:auto;">
               <table>
-                <thead><tr><th>Article</th><th>Catégorie</th><th>Quantité</th><th>Seuil min.</th><th>Valeur</th><th></th></tr></thead>
-                <tbody id="genstock-tbody"><tr><td colspan="6" class="empty-state">Chargement…</td></tr></tbody>
+                <thead><tr><th>Article</th><th>Service</th><th>Catégorie</th><th>Quantité</th><th>Seuil min.</th><th>Valeur</th><th></th></tr></thead>
+                <tbody id="genstock-tbody"><tr><td colspan="7" class="empty-state">Chargement…</td></tr></tbody>
               </table>
+              </div>
             </div>
           </div>
         </section>
@@ -497,6 +527,9 @@ tr:last-child td{border-bottom:none;}
             <button class="btn btn-sm chantier-filter-btn active" data-filter="EN_COURS">En cours</button>
             <button class="btn btn-sm chantier-filter-btn" data-filter="TERMINE">Terminés</button>
             <button class="btn btn-sm chantier-filter-btn" data-filter="ALL">Tous</button>
+          </div>
+          <div class="field" style="margin-bottom:12px;"><label>Filtrer par corps de métier</label>
+            <select id="chantier-trade-filter"><option value="">Tous les corps de métier</option></select>
           </div>
           <div id="chantier-list"><div class="empty-state">Chargement…</div></div>
         </section>
@@ -631,8 +664,8 @@ tr:last-child td{border-bottom:none;}
             </div>
             <div class="panel-body" style="overflow-x:auto;">
               <table>
-                <thead><tr><th>Date</th><th>Catégorie</th><th>Montant</th><th>Note</th></tr></thead>
-                <tbody id="expenses-tbody"><tr><td colspan="4" class="empty-state">Chargement…</td></tr></tbody>
+                <thead><tr><th>Date</th><th>Catégorie</th><th>Montant</th><th>Autorisé par</th><th>Effectué par</th><th>Note</th></tr></thead>
+                <tbody id="expenses-tbody"><tr><td colspan="6" class="empty-state">Chargement…</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -1186,7 +1219,14 @@ tr:last-child td{border-bottom:none;}
   <div class="modal" style="max-width:560px;">
     <h3>Bon de commande</h3>
     <input type="hidden" id="po-id">
+    <div class="field"><label>Service concerné</label>
+      <select id="po-department"></select>
+    </div>
     <div class="field"><label>Fournisseur</label><select id="po-supplier"></select></div>
+    <div class="grid-2">
+      <div class="field"><label>Demandé / autorisé par (qui donne l'argent)</label><input id="po-requested-by" placeholder="Ex : Mme Duval, DG..."></div>
+      <div class="field"><label>Achat effectué par</label><input id="po-purchased-by" placeholder="Ex : Nom de la personne qui achète"></div>
+    </div>
     <div class="field">
       <label>Articles à commander (stock cuisine)</label>
       <div id="po-items-rows"></div>
@@ -1265,6 +1305,9 @@ tr:last-child td{border-bottom:none;}
     <h3 id="need-modal-title">Nouveau besoin</h3>
     <input type="hidden" id="need-id">
     <div class="field"><label>Nom</label><input id="need-name" placeholder="Ex : Ampoules douche"></div>
+    <div class="field"><label>Service concerné</label>
+      <select id="need-department"></select>
+    </div>
     <div class="grid-2">
       <div class="field"><label>Quantité</label><input id="need-qty" placeholder="Ex : 10 pièces"></div>
       <div class="field"><label>Prix estimé (FCFA)</label><input type="number" id="need-price" placeholder="0"></div>
@@ -1286,6 +1329,9 @@ tr:last-child td{border-bottom:none;}
     <h3>Article (stock général)</h3>
     <input type="hidden" id="genstock-id">
     <div class="field"><label>Nom</label><input id="genstock-name" placeholder="Draps, serviettes, savon..."></div>
+    <div class="field"><label>Service concerné</label>
+      <select id="genstock-department"></select>
+    </div>
     <div class="grid-2">
       <div class="field"><label>Catégorie</label>
         <select id="genstock-category"><option>Linge</option><option>Entretien</option><option>Bureau</option><option>Équipements</option><option>Autre</option></select>
@@ -1313,6 +1359,13 @@ tr:last-child td{border-bottom:none;}
       <select id="expense-category"><option>Alimentation</option><option>Personnel</option><option>Entretien</option><option>Fournitures</option><option>Transport</option><option>Marketing</option><option>Chantier</option><option>Autre</option></select>
     </div>
     <div class="field"><label>Montant (FCFA)</label><input type="number" id="expense-amount" placeholder="0"></div>
+    <div class="field"><label>Service concerné</label>
+      <select id="expense-department"></select>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Autorisé par (qui a donné l'argent)</label><input id="expense-authorized-by" placeholder="Ex : Mme Duval, DG..."></div>
+      <div class="field"><label>Dépense effectuée par</label><input id="expense-performed-by" placeholder="Ex : Nom de la personne"></div>
+    </div>
     <div class="field"><label>Note</label><input id="expense-note" placeholder="Ex : achat produits d'entretien"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-expense')">Annuler</button>
@@ -1695,6 +1748,11 @@ const NAV_ITEMS = [
 
 let currentUser = null;
 let currentProfile = null;
+const DEPARTMENTS = ['Réception','Hébergement','Restaurant','Cuisine','Bar','Pizzeria','Administration','Sécurité','Housekeeping (femmes de chambre)','Chantier','Piscine / Espaces verts','Général'];
+function departmentOptionsHtml(selected){
+  return DEPARTMENTS.map(d=>`<option value="${d}" ${selected===d?'selected':''}>${d}</option>`).join('');
+}
+
 let cache = { rooms:[], reservations:[], guests:[], employees:[], cashMoves:[], tickets:[], audit:[], kitchenStock:[], recipes:[], tables:[], menuItems:[], orders:[], suppliers:[], purchaseOrders:[], shifts:[], generalStock:[], expenses:[], fixedCharges:[], payroll:[], invoices:[], barStock:[], needs:[], companies:[], companyEvents:[], brunchBookings:[], chantierWorks:[], supplyMovements:[], equipmentItems:[], hkIncidents:[], hkStock:[] };
 let invoiceLineRows = [];
 let unsubscribers = [];
@@ -1992,11 +2050,11 @@ function attachListeners(){
   }, err=>console.warn('employees listener', err)));
   unsubscribers.push(db.collection('cashTransactions').orderBy('createdAt','desc').limit(50).onSnapshot(snap=>{
     cache.cashMoves = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderCash();
+    renderCash(); renderDashboard();
   }, err=>console.warn('cash listener', err)));
   unsubscribers.push(db.collection('maintenanceTickets').orderBy('createdAt','desc').onSnapshot(snap=>{
     cache.tickets = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderTickets();
+    renderTickets(); renderDashboard();
   }, err=>console.warn('tickets listener', err)));
   unsubscribers.push(db.collection('auditLogs').orderBy('createdAt','desc').limit(80).onSnapshot(snap=>{
     cache.audit = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -2024,7 +2082,7 @@ function attachListeners(){
   }, err=>console.warn('menuItems listener', err)));
   unsubscribers.push(db.collection('orders').where('status','==','OPEN').onSnapshot(snap=>{
     cache.orders = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderOrders(); renderKds(); renderTables();
+    renderOrders(); renderKds(); renderTables(); renderDashboard();
   }, err=>console.warn('orders listener', err)));
   unsubscribers.push(db.collection('suppliers').orderBy('name').onSnapshot(snap=>{
     cache.suppliers = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -2040,7 +2098,7 @@ function attachListeners(){
   }, err=>console.warn('generalStock listener', err)));
   unsubscribers.push(db.collection('needs').orderBy('createdAt','desc').onSnapshot(snap=>{
     cache.needs = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderNeeds();
+    renderNeeds(); renderDashboard();
   }, err=>console.warn('needs listener', err)));
   unsubscribers.push(db.collection('expenses').orderBy('createdAt','desc').limit(100).onSnapshot(snap=>{
     cache.expenses = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -2064,15 +2122,15 @@ function attachListeners(){
   }, err=>console.warn('companies listener', err)));
   unsubscribers.push(db.collection('companyEvents').orderBy('eventDate','desc').onSnapshot(snap=>{
     cache.companyEvents = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderEvents(); renderCommercialTotal();
+    renderEvents(); renderCommercialTotal(); renderDashboard();
   }, err=>console.warn('companyEvents listener', err)));
   unsubscribers.push(db.collection('brunchBookings').orderBy('brunchDate','desc').onSnapshot(snap=>{
     cache.brunchBookings = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderBrunch();
+    renderBrunch(); renderDashboard();
   }, err=>console.warn('brunchBookings listener', err)));
   unsubscribers.push(db.collection('chantierWorks').orderBy('createdAt','desc').onSnapshot(snap=>{
     cache.chantierWorks = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderChantier();
+    renderChantier(); renderDashboard();
   }, err=>console.warn('chantierWorks listener', err)));
   unsubscribers.push(db.collection('supplyMovements').orderBy('createdAt','desc').limit(150).onSnapshot(snap=>{
     cache.supplyMovements = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -2080,15 +2138,15 @@ function attachListeners(){
   }, err=>console.warn('supplyMovements listener', err)));
   unsubscribers.push(db.collection('equipmentItems').orderBy('roomName').onSnapshot(snap=>{
     cache.equipmentItems = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderEquipment();
+    renderEquipment(); renderDashboard();
   }, err=>console.warn('equipmentItems listener', err)));
   unsubscribers.push(db.collection('hkIncidents').orderBy('createdAt','desc').onSnapshot(snap=>{
     cache.hkIncidents = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderIncidents();
+    renderIncidents(); renderDashboard();
   }, err=>console.warn('hkIncidents listener', err)));
   unsubscribers.push(db.collection('hkStock').orderBy('name').onSnapshot(snap=>{
     cache.hkStock = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderHkStock();
+    renderHkStock(); renderDashboard();
   }, err=>console.warn('hkStock listener', err)));
   subscribePlanningWeek();
 }
@@ -2119,16 +2177,69 @@ function renderDashboard(){
   const t = todayStr();
   const arrivals = cache.reservations.filter(r=>r.checkIn===t && r.status!=='CANCELLED');
   const departures = cache.reservations.filter(r=>r.checkOut===t && r.status!=='CANCELLED');
-  const lowStock = (cache.kitchenStock||[]).filter(i=>Number(i.quantity)<=Number(i.minStock));
 
-  document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card"><div class="label">Taux d'occupation</div><div class="value">${occRate}%</div></div>
-    <div class="stat-card accent-sage"><div class="label">Unités disponibles</div><div class="value">${available}/${total}</div></div>
+  // --- Aujourd'hui ---
+  const openOrders = cache.orders.length;
+  const hkOpenIncidents = cache.hkIncidents.filter(i=>i.status!=='RESOLU').length;
+  document.getElementById('dash-stats-today').innerHTML = `
     <div class="stat-card accent-warn"><div class="label">Arrivées aujourd'hui</div><div class="value">${arrivals.length}</div></div>
     <div class="stat-card accent-coral"><div class="label">Départs aujourd'hui</div><div class="value">${departures.length}</div></div>
+    <div class="stat-card"><div class="label">Commandes resto/bar en cours</div><div class="value">${openOrders}</div></div>
+    <div class="stat-card ${hkOpenIncidents?'stat-red':''}"><div class="label">Pannes ménage ouvertes</div><div class="value">${hkOpenIncidents}</div></div>
+  `;
+
+  // --- Hébergement ---
+  document.getElementById('dash-stats-rooms').innerHTML = `
+    <div class="stat-card"><div class="label">Taux d'occupation</div><div class="value">${occRate}%</div></div>
+    <div class="stat-card accent-sage"><div class="label">Unités disponibles</div><div class="value">${available}/${total}</div></div>
     <div class="stat-card"><div class="label">En nettoyage</div><div class="value">${cleaning}</div></div>
     <div class="stat-card"><div class="label">En maintenance</div><div class="value">${maint}</div></div>
-    <div class="stat-card accent-coral"><div class="label">Stock cuisine sous seuil</div><div class="value">${lowStock.length}</div></div>
+  `;
+
+  // --- Restaurant, Bar & Commercial B2B ---
+  const upcomingEvents = cache.companyEvents.filter(e=>['PROSPECT','CONFIRMED'].includes(e.status) && e.eventDate>=t);
+  const upcomingEventsValue = upcomingEvents.reduce((s,e)=>s+(Number(e.budget)||0),0);
+  const nextBrunch = cache.brunchBookings.filter(b=>['CONFIRMED','PENDING'].includes(b.status) && b.brunchDate>=t);
+  const nextBrunchValue = nextBrunch.reduce((s,b)=>s+brunchAmount(b),0);
+  document.getElementById('dash-stats-fb').innerHTML = `
+    <div class="stat-card"><div class="label">Tables occupées</div><div class="value">${cache.tables.filter(tb=>cache.orders.some(o=>o.tableId===tb.id)).length}/${cache.tables.length}</div></div>
+    <div class="stat-card"><div class="label">Entreprises B2B actives</div><div class="value">${cache.companies.filter(c=>c.active!==false).length}</div></div>
+    <div class="stat-card accent-sage"><div class="label">Formules à venir</div><div class="value">${upcomingEvents.length} (${fmtMoney(upcomingEventsValue)})</div></div>
+    <div class="stat-card accent-warn"><div class="label">Brunch à venir</div><div class="value">${nextBrunch.length} (${fmtMoney(nextBrunchValue)})</div></div>
+  `;
+
+  // --- Comptabilité & Chantier ---
+  const opMoves = cache.cashMoves.filter(m=>!m.isInjection);
+  const cashIn = opMoves.filter(m=>m.type==='IN').reduce((s,m)=>s+(m.amount||0),0);
+  const cashOut = opMoves.filter(m=>m.type==='OUT').reduce((s,m)=>s+(m.amount||0),0);
+  const chantierEngaged = cache.chantierWorks.reduce((s,c)=>s+(Number(c.totalCost)||0),0);
+  const chantierPaid = cache.chantierWorks.reduce((s,c)=>s+(Number(c.paidAmount)||0),0);
+  const needsTotal = cache.needs.filter(n=>n.status!=='BOUGHT').reduce((s,n)=>s+(n.price||0),0);
+  const soonCharges = cache.fixedCharges.filter(c=>{
+    const days = Math.round((new Date(c.dueDate)-new Date())/86400000);
+    return days<=7;
+  });
+  document.getElementById('dash-stats-finance').innerHTML = `
+    <div class="stat-card ${cashIn-cashOut>=0?'accent-sage':'stat-red'}"><div class="label">Solde caisse (exploit., récent)</div><div class="value">${fmtMoney(cashIn-cashOut)}</div></div>
+    <div class="stat-card"><div class="label">Chantier — restant à payer</div><div class="value">${fmtMoney(chantierEngaged-chantierPaid)}</div></div>
+    <div class="stat-card accent-warn"><div class="label">Besoins à acheter</div><div class="value">${fmtMoney(needsTotal)}</div></div>
+    <div class="stat-card ${soonCharges.length?'stat-red':''}"><div class="label">Charges à échéance (≤7j)</div><div class="value">${soonCharges.length}</div></div>
+  `;
+
+  // --- Stocks, Besoins & Maintenance ---
+  const lowKitchen = (cache.kitchenStock||[]).filter(i=>Number(i.quantity)<=Number(i.minStock));
+  const lowBar = (cache.barStock||[]).filter(i=>Number(i.quantity)<=Number(i.minStock));
+  const lowGeneral = (cache.generalStock||[]).filter(i=>Number(i.quantity)<=Number(i.minStock));
+  const lowHk = (cache.hkStock||[]).filter(i=>Number(i.quantity)<=Number(i.minStock));
+  const openTickets = cache.tickets.filter(tk=>tk.status!=='CLOSED').length;
+  const brokenEquip = cache.equipmentItems.filter(e=>e.condition==='HORS_SERVICE').length;
+  document.getElementById('dash-stats-ops').innerHTML = `
+    <div class="stat-card ${lowKitchen.length?'stat-red':''}"><div class="label">Stock cuisine sous seuil</div><div class="value">${lowKitchen.length}</div></div>
+    <div class="stat-card ${lowBar.length?'stat-red':''}"><div class="label">Stock bar sous seuil</div><div class="value">${lowBar.length}</div></div>
+    <div class="stat-card ${lowGeneral.length?'stat-red':''}"><div class="label">Stock général sous seuil</div><div class="value">${lowGeneral.length}</div></div>
+    <div class="stat-card ${lowHk.length?'stat-red':''}"><div class="label">Stock ménage sous seuil</div><div class="value">${lowHk.length}</div></div>
+    <div class="stat-card ${openTickets?'stat-amber':''}"><div class="label">Tickets maintenance ouverts</div><div class="value">${openTickets}</div></div>
+    <div class="stat-card ${brokenEquip?'stat-red':''}"><div class="label">Équipements hors service</div><div class="value">${brokenEquip}</div></div>
   `;
 
   const list = [
@@ -3323,6 +3434,9 @@ document.querySelectorAll('.need-filter-btn').forEach(b=>{
     renderNeeds();
   });
 });
+const needDeptFilterSel = document.getElementById('need-department-filter');
+needDeptFilterSel.innerHTML = '<option value="">Tous les services</option>' + departmentOptionsHtml();
+needDeptFilterSel.addEventListener('change', renderNeeds);
 
 function allStockItemsForLink(){
   return [
@@ -3339,6 +3453,8 @@ function renderNeeds(){
   let list = cache.needs;
   if(needFilter==='TOBUY') list = list.filter(n=>n.status!=='BOUGHT');
   if(needFilter==='BOUGHT') list = list.filter(n=>n.status==='BOUGHT');
+  const deptFilter = needDeptFilterSel.value;
+  if(deptFilter) list = list.filter(n=>n.department===deptFilter);
   if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucun besoin dans cette liste.</div>'; return; }
   wrap.innerHTML = list.map(n=>`
     <div class="panel" style="margin-bottom:10px;">
@@ -3346,7 +3462,7 @@ function renderNeeds(){
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
             <div style="font-weight:800;">${n.name}</div>
-            <div style="font-size:12px;color:var(--ink-soft);">${n.qty||''} · ${fmtDate(n.createdAt)}</div>
+            <div style="font-size:12px;color:var(--ink-soft);">${n.department?n.department+' · ':''}${n.qty||''} · ${fmtDate(n.createdAt)}</div>
             ${n.linkedStock ? `<span class="tag tag-confirmed" style="margin-top:6px;display:inline-block;">📦 Stock lié</span>` : ''}
           </div>
           <div style="font-weight:800;color:var(--ocean-deep);">${fmtMoney(n.price)}</div>
@@ -3365,6 +3481,7 @@ document.getElementById('add-need-btn').addEventListener('click', ()=>{
   document.getElementById('need-modal-title').textContent = 'Nouveau besoin';
   document.getElementById('need-id').value = '';
   document.getElementById('need-name').value = '';
+  document.getElementById('need-department').innerHTML = departmentOptionsHtml();
   document.getElementById('need-qty').value = '';
   document.getElementById('need-price').value = '';
   const sel = document.getElementById('need-linked-stock');
@@ -3378,6 +3495,7 @@ window.editNeed = function(id){
   document.getElementById('need-modal-title').textContent = 'Modifier le besoin';
   document.getElementById('need-id').value = n.id;
   document.getElementById('need-name').value = n.name||'';
+  document.getElementById('need-department').innerHTML = departmentOptionsHtml(n.department);
   document.getElementById('need-qty').value = n.qty||'';
   document.getElementById('need-price').value = n.price||'';
   const sel = document.getElementById('need-linked-stock');
@@ -3390,7 +3508,8 @@ document.getElementById('save-need-btn').addEventListener('click', async ()=>{
   const name = document.getElementById('need-name').value.trim();
   if(!name){ toast('Le nom est requis.', 'danger'); return; }
   const data = {
-    name, qty: document.getElementById('need-qty').value.trim(),
+    name, department: document.getElementById('need-department').value,
+    qty: document.getElementById('need-qty').value.trim(),
     price: Number(document.getElementById('need-price').value)||0,
     linkedStock: document.getElementById('need-linked-stock').value || null,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -3899,6 +4018,10 @@ document.querySelectorAll('.chantier-filter-btn').forEach(b=>{
     renderChantier();
   });
 });
+const CHANTIER_TRADES = ['Électriciens','Menuisiers','Plombiers','Maçons','Peintres','Carreleurs','Métalliers / Soudure','Toiture / Couverture','Autre'];
+const chantierTradeFilterSel = document.getElementById('chantier-trade-filter');
+chantierTradeFilterSel.innerHTML = '<option value="">Tous les corps de métier</option>' + CHANTIER_TRADES.map(t=>`<option value="${t}">${t}</option>`).join('');
+chantierTradeFilterSel.addEventListener('change', renderChantier);
 
 const CHANTIER_STATUS_LABEL = {EN_COURS:'En cours', EN_ATTENTE:'En attente', TERMINE:'Terminé'};
 const CHANTIER_STATUS_TAG = {EN_COURS:'tag-checked_in', EN_ATTENTE:'tag-pending', TERMINE:'tag-confirmed'};
@@ -3913,6 +4036,8 @@ function renderChantier(){
   const wrap = document.getElementById('chantier-list');
   let list = cache.chantierWorks;
   if(chantierFilter!=='ALL') list = list.filter(c=>c.status===chantierFilter);
+  const tradeFilter = chantierTradeFilterSel.value;
+  if(tradeFilter) list = list.filter(c=>c.trade===tradeFilter);
   if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucun chantier dans cette liste.</div>'; return; }
   wrap.innerHTML = list.map(c=>{
     const total = Number(c.totalCost)||0;
@@ -4030,13 +4155,20 @@ document.getElementById('save-chantier-payment-btn').addEventListener('click', a
   }catch(e){ toast('Erreur : '+e.message, 'danger'); }
 });
 
+const genstockDeptFilterSel = document.getElementById('genstock-department-filter');
+genstockDeptFilterSel.innerHTML = '<option value="">Tous les services</option>' + departmentOptionsHtml();
+genstockDeptFilterSel.addEventListener('change', renderGeneralStock);
+
 function renderGeneralStock(){
   const tbody = document.getElementById('genstock-tbody');
-  if(!cache.generalStock.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun article enregistré.</td></tr>'; return; }
-  tbody.innerHTML = cache.generalStock.map(i=>{
+  let list = cache.generalStock;
+  const deptFilter = genstockDeptFilterSel.value;
+  if(deptFilter) list = list.filter(i=>i.department===deptFilter);
+  if(!list.length){ tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun article enregistré.</td></tr>'; return; }
+  tbody.innerHTML = list.map(i=>{
     const low = Number(i.quantity) <= Number(i.minStock);
     return `<tr>
-      <td>${i.name}</td><td>${i.category||'—'}</td>
+      <td>${i.name}</td><td>${i.department||'—'}</td><td>${i.category||'—'}</td>
       <td style="${low?'color:var(--danger);font-weight:700;':''}">${i.quantity} ${i.unit}${low?' ⚠':''}</td>
       <td>${i.minStock} ${i.unit}</td>
       <td>${fmtMoney((i.quantity||0)*(i.costPerUnit||0))}</td>
@@ -4053,6 +4185,7 @@ window.deleteGenStock = async function(id){
 
 document.getElementById('add-genstock-btn').addEventListener('click', ()=>{
   ['genstock-id','genstock-name','genstock-qty','genstock-min','genstock-cost'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('genstock-department').innerHTML = departmentOptionsHtml();
   document.getElementById('genstock-category').value='Linge';
   document.getElementById('genstock-unit').value='pièce';
   openModal('modal-genstock');
@@ -4063,6 +4196,7 @@ window.editGenStock = function(id){
   if(!i) return;
   document.getElementById('genstock-id').value=i.id;
   document.getElementById('genstock-name').value=i.name||'';
+  document.getElementById('genstock-department').innerHTML = departmentOptionsHtml(i.department);
   document.getElementById('genstock-category').value=i.category||'Linge';
   document.getElementById('genstock-unit').value=i.unit||'pièce';
   document.getElementById('genstock-qty').value=i.quantity||0;
@@ -4075,6 +4209,7 @@ document.getElementById('save-genstock-btn').addEventListener('click', async ()=
   const id = document.getElementById('genstock-id').value;
   const data = {
     name: document.getElementById('genstock-name').value.trim(),
+    department: document.getElementById('genstock-department').value,
     category: document.getElementById('genstock-category').value,
     unit: document.getElementById('genstock-unit').value,
     quantity: Number(document.getElementById('genstock-qty').value)||0,
@@ -4099,15 +4234,18 @@ function renderExpenses(){
     <div class="stat-card stat-red"><div class="label">Total dépenses (100 dern.)</div><div class="value">${fmtMoney(total)}</div></div>
   `;
   const tbody = document.getElementById('expenses-tbody');
-  if(!inMonth.length){ tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aucune dépense enregistrée.</td></tr>'; return; }
+  if(!inMonth.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucune dépense enregistrée.</td></tr>'; return; }
   tbody.innerHTML = inMonth.map(e=>`
-    <tr><td>${fmtDate(e.createdAt)}</td><td>${e.category}</td><td>${fmtMoney(e.amount)}</td><td>${e.note||'—'}</td></tr>
+    <tr><td>${fmtDate(e.createdAt)}</td><td>${e.category}${e.department?' ('+e.department+')':''}</td><td>${fmtMoney(e.amount)}</td><td>${e.authorizedBy||'—'}</td><td>${e.performedBy||'—'}</td><td>${e.note||'—'}</td></tr>
   `).join('');
 }
 
 document.getElementById('add-expense-btn').addEventListener('click', ()=>{
   document.getElementById('expense-category').value='Alimentation';
+  document.getElementById('expense-department').innerHTML = departmentOptionsHtml();
   document.getElementById('expense-amount').value='';
+  document.getElementById('expense-authorized-by').value='';
+  document.getElementById('expense-performed-by').value = currentProfile ? currentProfile.name : '';
   document.getElementById('expense-note').value='';
   openModal('modal-expense');
 });
@@ -4115,16 +4253,19 @@ document.getElementById('add-expense-btn').addEventListener('click', ()=>{
 document.getElementById('save-expense-btn').addEventListener('click', async ()=>{
   const amount = Number(document.getElementById('expense-amount').value)||0;
   const category = document.getElementById('expense-category').value;
+  const department = document.getElementById('expense-department').value;
+  const authorizedBy = document.getElementById('expense-authorized-by').value.trim();
+  const performedBy = document.getElementById('expense-performed-by').value.trim();
   const note = document.getElementById('expense-note').value.trim();
   if(!amount){ toast('Montant requis.', 'danger'); return; }
   try{
-    await db.collection('expenses').add({ category, amount, note, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection('expenses').add({ category, department, authorizedBy, performedBy, amount, note, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('cashTransactions').add({
       type:'OUT', amount, mode:'Espèces', register:'general',
       note:`Dépense — ${category}${note ? ' : '+note : ''}`,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    await logAudit('expense.create', `${category} — ${fmtMoney(amount)}`);
+    await logAudit('expense.create', `${category} — ${fmtMoney(amount)}${authorizedBy?' — autorisé par '+authorizedBy:''}`);
     closeModal('modal-expense');
     toast('Dépense enregistrée et déduite de la caisse.');
   }catch(e){ toast('Erreur : '+e.message, 'danger'); }
@@ -4402,7 +4543,7 @@ async function buildReportText(key){
     Object.entries(d.expByCat).forEach(([cat,amt])=>{ t += fmtLines([[cat, fmtMoney(amt)]])+'\n'; });
     if(!Object.keys(d.expByCat).length) t += 'Aucune dépense ce mois.\n';
     t += `\nDétail :\n`;
-    d.expenses.forEach(e=>{ t += `${fmtDate(e.createdAt)} · ${e.category} · ${fmtMoney(e.amount)} · ${e.note||''}\n`; });
+    d.expenses.forEach(e=>{ t += `${fmtDate(e.createdAt)} · ${e.category}${e.department?' ('+e.department+')':''} · ${fmtMoney(e.amount)} · Autorisé par ${e.authorizedBy||'—'} · Effectué par ${e.performedBy||'—'} · ${e.note||''}\n`; });
     return t;
   }
   if(key==='clients'){
@@ -4425,15 +4566,17 @@ async function buildReportText(key){
     const lowK = cache.kitchenStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
     const lowG = cache.generalStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
     const lowB = cache.barStock.filter(i=>Number(i.quantity)<=Number(i.minStock));
+    const lowH = (cache.hkStock||[]).filter(i=>Number(i.quantity)<=Number(i.minStock));
     let t = header + `STOCK — ALERTES ACTUELLES\n\n`;
     t += `Cuisine :\n` + (lowK.length ? lowK.map(i=>`  ${i.name} — ${i.quantity} ${i.unit}`).join('\n') : '  Aucune alerte') + '\n\n';
     t += `Bar :\n` + (lowB.length ? lowB.map(i=>`  ${i.name} — ${i.quantity} ${i.unit}`).join('\n') : '  Aucune alerte') + '\n\n';
-    t += `Général :\n` + (lowG.length ? lowG.map(i=>`  ${i.name} — ${i.quantity} ${i.unit}`).join('\n') : '  Aucune alerte') + '\n';
+    t += `Général :\n` + (lowG.length ? lowG.map(i=>`  ${i.name} (${i.department||'—'}) — ${i.quantity} ${i.unit}`).join('\n') : '  Aucune alerte') + '\n\n';
+    t += `Ménage :\n` + (lowH.length ? lowH.map(i=>`  ${i.name} — ${i.quantity} ${i.unit}`).join('\n') : '  Aucune alerte') + '\n';
     return t;
   }
   if(key==='achats'){
     let t = header + `ACHATS — BONS DE COMMANDE CE MOIS (${d.purchaseOrders.length})\n\n`;
-    d.purchaseOrders.forEach(po=>{ t += `${po.orderNumber} — ${fmtMoney(po.totalAmount)} — ${po.status}\n`; });
+    d.purchaseOrders.forEach(po=>{ t += `${po.orderNumber}${po.department?' — '+po.department:''} — ${fmtMoney(po.totalAmount)} — ${po.status} — Autorisé par ${po.requestedBy||'—'} — Achat par ${po.purchasedBy||'—'}\n`; });
     if(!d.purchaseOrders.length) t += 'Aucun bon de commande ce mois.\n';
     return t;
   }
@@ -5372,6 +5515,9 @@ function updatePoPreview(){
 document.getElementById('add-po-btn').addEventListener('click', ()=>{
   if(!cache.kitchenStock.length){ toast('Ajoutez d\'abord des ingrédients au stock cuisine.', 'danger'); return; }
   document.getElementById('po-id').value='';
+  document.getElementById('po-department').innerHTML = departmentOptionsHtml('Cuisine');
+  document.getElementById('po-requested-by').value = '';
+  document.getElementById('po-purchased-by').value = currentProfile ? currentProfile.name : '';
   document.getElementById('po-supplier').innerHTML = '<option value="">— Sans fournisseur —</option>' +
     cache.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   poItemRows = [{itemId:'', qty:0, unitCost:0}];
@@ -5388,10 +5534,13 @@ document.getElementById('save-po-btn').addEventListener('click', async ()=>{
   });
   const total = items.reduce((s,i)=>s+i.qty*i.unitCost,0);
   const supplierId = document.getElementById('po-supplier').value;
+  const department = document.getElementById('po-department').value;
+  const requestedBy = document.getElementById('po-requested-by').value.trim();
+  const purchasedBy = document.getElementById('po-purchased-by').value.trim();
   try{
     const orderNumber = 'BC-' + Date.now().toString().slice(-6);
     await db.collection('purchaseOrders').add({
-      orderNumber, supplierId, items, totalAmount: total, status:'PENDING',
+      orderNumber, supplierId, department, requestedBy, purchasedBy, items, totalAmount: total, status:'PENDING',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     await logAudit('po.create', `${orderNumber} — ${fmtMoney(total)}`);
@@ -5407,14 +5556,24 @@ const PO_STATUS_TAG = {PENDING:'pending',ORDERED:'reserved',RECEIVED:'confirmed'
 const PO_FLOW = {PENDING:'ORDERED', ORDERED:'RECEIVED'};
 const PO_ACTION_LABEL = {PENDING:'Marquer commandé', ORDERED:'Réceptionner (entrée en stock)'};
 
+const poDeptFilterSel = document.getElementById('po-department-filter');
+poDeptFilterSel.innerHTML = '<option value="">Tous les services</option>' + departmentOptionsHtml();
+poDeptFilterSel.addEventListener('change', renderPurchaseOrders);
+
 function renderPurchaseOrders(){
   const wrap = document.getElementById('po-list');
-  if(!cache.purchaseOrders.length){ wrap.innerHTML = '<div class="empty-state">Aucun bon de commande.</div>'; return; }
-  wrap.innerHTML = cache.purchaseOrders.map(po=>`
+  const deptFilter = document.getElementById('po-department-filter') ? document.getElementById('po-department-filter').value : '';
+  let list = cache.purchaseOrders;
+  if(deptFilter) list = list.filter(po=>po.department===deptFilter);
+  if(!list.length){ wrap.innerHTML = '<div class="empty-state">Aucun bon de commande dans cette liste.</div>'; return; }
+  wrap.innerHTML = list.map(po=>`
     <div class="po-card">
       <div class="phead">
         <h4>${po.orderNumber} — ${supplierName(po.supplierId)}</h4>
         <span class="tag tag-${PO_STATUS_TAG[po.status]}">${PO_STATUS_LABEL[po.status]||po.status}</span>
+      </div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">
+        ${po.department?po.department+' · ':''}${po.requestedBy?'Autorisé par '+po.requestedBy+' · ':''}${po.purchasedBy?'Achat par '+po.purchasedBy:''}
       </div>
       <table style="margin-bottom:8px;"><tbody>
         ${(po.items||[]).map(i=>`<tr><td>${i.name}</td><td>${i.qty} ${i.unit}</td><td>${fmtMoney(i.unitCost)}/u.</td><td>${fmtMoney(i.qty*i.unitCost)}</td></tr>`).join('')}
